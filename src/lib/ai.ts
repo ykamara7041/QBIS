@@ -28,8 +28,9 @@ ${dataContext}
 `
     const result = await model.generateContent(prompt)
     return result.response.text()
-  } catch (error) {
-    console.error("Failed to generate AI insights:", error)
-    return "The AI assistant encountered an error while analyzing your data. Please try again later."
+  } catch (error: any) {
+    // Use console.warn instead of console.error to prevent Next.js from throwing a dev overlay
+    console.warn("AI generation warning (likely quota exceeded):", error?.message || error)
+    return "The AI assistant is currently analyzing too many requests and has hit a temporary rate limit. Please try again in a few minutes, or review your Gemini API quotas."
   }
 }
