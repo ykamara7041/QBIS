@@ -1,12 +1,13 @@
 import { NextResponse } from "next/server"
-import NextAuth from "next-auth"
-import { authConfig } from "./auth.config"
+import type { NextRequest } from "next/server"
 
-const { auth } = NextAuth(authConfig)
+export default function middleware(req: NextRequest) {
+  const { nextUrl, cookies } = req
 
-export default auth((req) => {
-  const { nextUrl } = req
-  const isLoggedIn = !!req.auth
+  // Simple presence check for the Auth.js session token cookie.
+  // The actual validation is handled by NextAuth in /api/auth routes (Node runtime).
+  const sessionCookie = cookies.get("authjs.session-token")
+  const isLoggedIn = !!sessionCookie?.value
 
   const isApiAuthRoute = nextUrl.pathname.startsWith("/api/auth")
   const isPublicRoute = nextUrl.pathname === "/"
@@ -28,7 +29,7 @@ export default auth((req) => {
   }
 
   return NextResponse.next()
-})
+}
 
 export const config = {
   matcher: ["/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
