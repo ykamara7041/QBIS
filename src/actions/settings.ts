@@ -22,7 +22,7 @@ export async function updateLanguage(userId: string, language: string) {
 
 export async function addOrganizationMember(organizationId: string, email: string, name: string, role: string) {
   const session = await auth()
-  if (!session?.user) throw new Error("Unauthorized")
+  if (!session?.user?.id) throw new Error("Unauthorized")
 
   // Check if current user is SUPER_ADMIN of this org
   const currentMember = await db.organizationMember.findUnique({
@@ -83,7 +83,7 @@ export async function addOrganizationMember(organizationId: string, email: strin
 
 export async function updateMemberRole(userId: string, organizationId: string, role: string) {
   const session = await auth()
-  if (!session?.user) throw new Error("Unauthorized")
+  if (!session?.user?.id) throw new Error("Unauthorized")
 
   // Check if current user is SUPER_ADMIN of this org
   const currentMember = await db.organizationMember.findUnique({
@@ -118,7 +118,7 @@ export async function updateMemberRole(userId: string, organizationId: string, r
 
 export async function removeMember(userId: string, organizationId: string) {
   const session = await auth()
-  if (!session?.user) throw new Error("Unauthorized")
+  if (!session?.user?.id) throw new Error("Unauthorized")
 
   // Check if current user is SUPER_ADMIN of this org
   const currentMember = await db.organizationMember.findUnique({
