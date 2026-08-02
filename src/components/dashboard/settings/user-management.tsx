@@ -47,7 +47,8 @@ export function UserManagement({ organizationId, members, isAdmin }: UserManagem
   const [isOpen, setIsOpen] = useState(false)
   const [newEmail, setNewEmail] = useState("")
   const [newName, setNewName] = useState("")
-  const [newRole, setNewRole] = useState("DATA_ENTRY")
+  const [newPassword, setNewPassword] = useState("")
+  const [newRole, setNewRole] = useState("REVENUE_OFFICER")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
   const [success, setSuccess] = useState("")
@@ -57,10 +58,10 @@ export function UserManagement({ organizationId, members, isAdmin }: UserManagem
       setLoading(true)
       setError("")
       setSuccess("")
-      const res = await addOrganizationMember(organizationId, newEmail, newName, newRole)
+      const res = await addOrganizationMember(organizationId, newEmail, newName, newRole, newPassword)
       if (res.success) {
         setSuccess(res.message || "User added.")
-        setTimeout(() => setIsOpen(false), 2000)
+        setTimeout(() => setIsOpen(false), 2500)
       }
     } catch (err: any) {
       setError(err.message || "Failed to add user.")
@@ -120,14 +121,20 @@ export function UserManagement({ organizationId, members, isAdmin }: UserManagem
                   <Input id="email" type="email" value={newEmail} onChange={(e) => setNewEmail(e.target.value)} placeholder="jane@example.com" />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="role">Role</Label>
-                  <Select value={newRole} onValueChange={(val) => setNewRole(val || "DATA_ENTRY")}>
+                  <Label htmlFor="password">Initial Password (Optional, default: password123)</Label>
+                  <Input id="password" type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="Minimum 6 characters" />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="role">Role & Permission</Label>
+                  <Select value={newRole} onValueChange={(val) => setNewRole(val || "REVENUE_OFFICER")}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select a role" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="SUPER_ADMIN">Admin</SelectItem>
-                      <SelectItem value="DATA_ENTRY">Data Entry (Read-Only/Basic)</SelectItem>
+                      <SelectItem value="SUPER_ADMIN">Admin (Full Control & Approvals)</SelectItem>
+                      <SelectItem value="REVENUE_OFFICER">Revenue Officer (Add & Track Revenue)</SelectItem>
+                      <SelectItem value="DATA_ENTRY">Data Entry (Submit Entries for Approval)</SelectItem>
+                      <SelectItem value="VIEWER">Auditor / Viewer (Read-Only Access)</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -165,11 +172,15 @@ export function UserManagement({ organizationId, members, isAdmin }: UserManagem
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="SUPER_ADMIN">Admin</SelectItem>
+                        <SelectItem value="REVENUE_OFFICER">Revenue Officer</SelectItem>
                         <SelectItem value="DATA_ENTRY">Data Entry</SelectItem>
+                        <SelectItem value="VIEWER">Auditor / Viewer</SelectItem>
                       </SelectContent>
                     </Select>
                   ) : (
-                    <span className="text-sm text-muted-foreground">{member.role === 'SUPER_ADMIN' ? 'Admin' : 'Data Entry'}</span>
+                    <span className="text-sm text-muted-foreground">
+                      {member.role === 'SUPER_ADMIN' ? 'Admin' : member.role === 'REVENUE_OFFICER' ? 'Revenue Officer' : member.role === 'DATA_ENTRY' ? 'Data Entry' : 'Auditor / Viewer'}
+                    </span>
                   )}
                 </TableCell>
                 {isAdmin && (

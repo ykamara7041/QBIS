@@ -20,7 +20,7 @@ export async function updateLanguage(userId: string, language: string) {
   return { success: true }
 }
 
-export async function addOrganizationMember(organizationId: string, email: string, name: string, role: string) {
+export async function addOrganizationMember(organizationId: string, email: string, name: string, role: string, initialPassword?: string) {
   const session = await auth()
   if (!session?.user?.id) throw new Error("Unauthorized")
 
@@ -35,10 +35,11 @@ export async function addOrganizationMember(organizationId: string, email: strin
 
   // Check if user already exists
   let user = await db.user.findUnique({ where: { email } })
+  const pwdToUse = initialPassword && initialPassword.trim().length >= 6 ? initialPassword.trim() : "password123"
   
   if (!user) {
-    // Create the user with a default password for the demo
-    const passwordHash = await bcrypt.hash("password123", 10)
+    // Create the user with the specified password or default
+    const passwordHash = await bcrypt.hash(pwdToUse, 10)
     user = await db.user.create({
       data: {
         email,
@@ -78,7 +79,7 @@ export async function addOrganizationMember(organizationId: string, email: strin
   `)
 
   revalidatePath("/dashboard/settings")
-  return { success: true, message: "Member added successfully. Their password is 'password123'." }
+  return { success: true, message: `Member added successfully. Login password set to: '${pwdToUse}'` }
 }
 
 export async function updateMemberRole(userId: string, organizationId: string, role: string) {

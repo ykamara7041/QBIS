@@ -117,10 +117,6 @@ export async function logoutUser() {
   await signOut({ redirectTo: "/login" })
 }
 
-export async function googleSignIn() {
-  await signIn("google", { redirectTo: "/dashboard" })
-}
-
 const updateAccountSchema = z.object({
   email: z.string().email("Invalid email address"),
   password: z.string().min(6, "Password must be at least 6 characters").optional().or(z.literal("")),
