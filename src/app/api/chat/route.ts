@@ -3,7 +3,7 @@ import { GoogleGenerativeAIStream, StreamingTextResponse } from "ai"
 import { NextResponse } from "next/server"
 
 export const maxDuration = 30
-export const runtime = "edge"
+export const runtime = "nodejs"
 
 export async function POST(req: Request) {
   try {
