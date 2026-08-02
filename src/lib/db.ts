@@ -3,21 +3,30 @@ import pg from "pg"
 import { PrismaPg } from "@prisma/adapter-pg"
 
 const prismaClientSingleton = () => {
-  // Use non-pooling URL because pg.Pool itself handles pooling. 
-  // Using the Supabase transaction pooler (port 6543) with pg.Pool causes connection issues.
-  const connectionString = process.env.POSTGRES_URL_NON_POOLING || process.env.DATABASE_URL
+  const envUrl = process.env.POSTGRES_URL_NON_POOLING || process.env.DATABASE_URL || process.env.POSTGRES_URL || ""
+  
+  let connectionString = envUrl
+  try {
+    const url = new URL(envUrl)
+    url.searchParams.delete("sslmode")
+    url.searchParams.delete("pgbouncer")
+    connectionString = url.toString()
+  } catch (e) {
+    // ignore parse errors
+  }
+  
   const pool = new pg.Pool({
     connectionString,
-    ...(connectionString?.includes("sslmode=require") ? { ssl: { rejectUnauthorized: false } } : {})
+    ssl: envUrl.includes("localhost") ? false : { rejectUnauthorized: false }
   })
   const adapter = new PrismaPg(pool)
   return new PrismaClient({ adapter })
 }
 
 declare const globalThis: {
-  prismaGlobal: ReturnType<typeof prismaClientSingleton>;
+  prismaGlobal2: ReturnType<typeof prismaClientSingleton>;
 } & typeof global;
 
-export const db = globalThis.prismaGlobal ?? prismaClientSingleton()
+export const db = globalThis.prismaGlobal2 ?? prismaClientSingleton()
 
-if (process.env.NODE_ENV !== "production") globalThis.prismaGlobal = db
+if (process.env.NODE_ENV !== "production") globalThis.prismaGlobal2 = db
