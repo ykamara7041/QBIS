@@ -42,7 +42,7 @@ export default async function GoalsPage() {
       title: "Q3 Software Subscriptions",
       targetAmount: 50000,
       currentAmount: 32500,
-      currency: "USD",
+      currency: "GNF",
       endDate: new Date(new Date().setMonth(new Date().getMonth() + 2)),
       status: "ACTIVE"
     })

@@ -40,7 +40,7 @@ export function ApprovalTable({ transactions }: { transactions: any[] }) {
             <TableHead>Description</TableHead>
             <TableHead>Category</TableHead>
             <TableHead>Original</TableHead>
-            <TableHead>Converted (USD)</TableHead>
+            <TableHead>Converted (GNF)</TableHead>
             <TableHead className="text-right">Actions</TableHead>
           </TableRow>
         </TableHeader>

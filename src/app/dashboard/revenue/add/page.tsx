@@ -72,7 +72,7 @@ export default function AddRevenuePage() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="currency">{t("revenue.add.currency")}</Label>
-                <Select name="currency" defaultValue="USD">
+                <Select name="currency" defaultValue="GNF">
                   <SelectTrigger>
                     <SelectValue placeholder="Select currency" />
                   </SelectTrigger>

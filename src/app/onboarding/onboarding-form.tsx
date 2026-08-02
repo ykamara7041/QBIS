@@ -53,7 +53,7 @@ export default function OnboardingForm() {
             <Label htmlFor="country">Country</Label>
             <div className="relative">
               <GlobeIcon className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground z-10" />
-              <Select name="country" required defaultValue="Liberia">
+              <Select name="country" required defaultValue="Guinea">
                 <SelectTrigger className="pl-9">
                   <SelectValue placeholder="Select country" />
                 </SelectTrigger>
