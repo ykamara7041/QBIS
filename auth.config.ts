@@ -2,6 +2,7 @@ import type { NextAuthConfig } from "next-auth"
 
 export const authConfig = {
   debug: true,
+  trustHost: true,
   session: { strategy: "jwt" },
   providers: [],
   callbacks: {
