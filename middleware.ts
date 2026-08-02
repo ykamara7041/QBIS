@@ -1,8 +1,5 @@
 import { NextResponse } from "next/server"
-import NextAuth from "next-auth"
-import { authConfig } from "./auth.config"
-
-export const { auth } = NextAuth(authConfig)
+import { auth } from "./auth"
 
 export default auth((req) => {
   const { nextUrl } = req
@@ -30,7 +27,7 @@ export default auth((req) => {
   return NextResponse.next()
 })
 
-// Optionally, don't invoke Middleware on some paths
 export const config = {
-  matcher: ["/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)"],
+  matcher: ["/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+  ],
 }
