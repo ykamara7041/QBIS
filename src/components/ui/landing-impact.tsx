@@ -1,12 +1,19 @@
 import { cn } from "@/lib/utils";
 import Image from "next/image";
 import { WifiIcon, GlobeIcon, ZapIcon } from "lucide-react";
+import * as motion from "framer-motion/client";
 
 export function LandingImpact() {
   return (
     <section className="mx-auto w-full max-w-5xl px-4 py-16 md:py-32">
       <div className="grid items-center gap-12 lg:grid-cols-2">
-        <div className="order-2 lg:order-1">
+        <motion.div 
+          initial={{ opacity: 0, x: -50 }}
+          whileInView={{ opacity: 1, x: 0 }}
+          transition={{ type: "spring", bounce: 0.5, duration: 0.8 }}
+          viewport={{ once: true, amount: 0.2 }}
+          className="order-2 lg:order-1"
+        >
           <div className="relative aspect-[4/5] w-full overflow-hidden rounded-2xl shadow-2xl">
             <Image
               src="/guinea_market.png"
@@ -27,9 +34,15 @@ export function LandingImpact() {
               </div>
             </div>
           </div>
-        </div>
+        </motion.div>
 
-        <div className="order-1 space-y-8 lg:order-2">
+        <motion.div 
+          initial={{ opacity: 0, x: 50 }}
+          whileInView={{ opacity: 1, x: 0 }}
+          transition={{ type: "spring", bounce: 0.5, duration: 0.8 }}
+          viewport={{ once: true, amount: 0.2 }}
+          className="order-1 space-y-8 lg:order-2"
+        >
           <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-sm font-medium text-primary">
             <GlobeIcon className="size-4" />
             Real Community Impact
@@ -64,7 +77,7 @@ export function LandingImpact() {
               </div>
             </div>
           </div>
-        </div>
+        </motion.div>
       </div>
     </section>
   );

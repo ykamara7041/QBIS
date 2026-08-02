@@ -1,11 +1,18 @@
 import { cn } from "@/lib/utils";
 import { TrophyIcon, TrendingUpIcon, StarIcon } from "lucide-react";
 import Image from "next/image";
+import * as motion from "framer-motion/client";
 
 export function LandingSalesperson() {
   return (
     <section className="mx-auto w-full max-w-5xl px-4 py-16 md:py-24">
-      <div className="relative mx-auto max-w-3xl overflow-hidden rounded-2xl border bg-card p-8 shadow-2xl dark:inset-shadow-foreground/10 dark:inset-shadow-xs">
+      <motion.div 
+        initial={{ opacity: 0, y: 50 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        transition={{ type: "spring", bounce: 0.5, duration: 0.8 }}
+        viewport={{ once: true }}
+        className="relative mx-auto max-w-3xl overflow-hidden rounded-2xl border bg-card p-8 shadow-2xl dark:inset-shadow-foreground/10 dark:inset-shadow-xs"
+      >
         {/* Glow effect */}
         <div className="absolute -top-24 -right-24 -z-10 size-64 rounded-full bg-[radial-gradient(ellipse_at_center,theme(--color-primary/.15),transparent,transparent)] blur-3xl" />
         
@@ -50,7 +57,7 @@ export function LandingSalesperson() {
             </div>
           </div>
         </div>
-      </div>
+      </motion.div>
     </section>
   );
 }

@@ -6,12 +6,13 @@ import { loginUser, googleSignIn } from "@/actions/auth"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Loader2 } from "lucide-react"
+import { Loader2, Eye, EyeOff } from "lucide-react"
 import Link from "next/link"
 
 export default function LoginForm() {
   const [error, setError] = React.useState<string | null>(null)
   const [isPending, startTransition] = React.useTransition()
+  const [showPassword, setShowPassword] = React.useState(false)
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -48,7 +49,16 @@ export default function LoginForm() {
                 Forgot password?
               </Link>
             </div>
-            <Input id="password" name="password" type="password" required />
+            <div className="relative">
+              <Input id="password" name="password" type={showPassword ? "text" : "password"} required />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              >
+                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
           </div>
         </div>
 
