@@ -3,7 +3,9 @@ import pg from "pg"
 import { PrismaPg } from "@prisma/adapter-pg"
 
 const prismaClientSingleton = () => {
-  const connectionString = process.env.POSTGRES_PRISMA_URL || process.env.DATABASE_URL
+  // Use non-pooling URL because pg.Pool itself handles pooling. 
+  // Using the Supabase transaction pooler (port 6543) with pg.Pool causes connection issues.
+  const connectionString = process.env.POSTGRES_URL_NON_POOLING || process.env.DATABASE_URL
   const pool = new pg.Pool({
     connectionString,
     ...(connectionString?.includes("sslmode=require") ? { ssl: { rejectUnauthorized: false } } : {})
