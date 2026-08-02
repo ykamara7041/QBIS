@@ -14,6 +14,7 @@ import { Menu, LogOut, Settings, User as UserIcon } from "lucide-react"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { Sidebar } from "./sidebar"
 import { logoutUser } from "@/actions/auth"
+import { ThemeToggle } from "@/components/theme-toggle"
 
 interface TopbarProps {
   user: {
@@ -50,6 +51,8 @@ export function Topbar({ user }: TopbarProps) {
       <div className="w-full flex-1">
         {/* Placeholder for Breadcrumbs or Search */}
       </div>
+      
+      <ThemeToggle />
       
       <DropdownMenu>
         <DropdownMenuTrigger className="inline-flex items-center justify-center rounded-full border border-input bg-secondary hover:bg-secondary/80 h-9 w-9">

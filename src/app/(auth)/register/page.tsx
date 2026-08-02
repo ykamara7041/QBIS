@@ -1,5 +1,6 @@
 import RegisterForm from "./register-form"
 import Link from "next/link"
+import { ThemeToggle } from "@/components/theme-toggle"
 import { TrendingUpIcon } from "lucide-react"
 
 export default function RegisterPage() {
@@ -19,7 +20,10 @@ export default function RegisterPage() {
           © {new Date().getFullYear()} QBIX RevenueTrack AI. All rights reserved.
         </div>
       </div>
-      <div className="flex w-full lg:w-1/2 flex-col items-center justify-center p-8 bg-background">
+      <div className="relative flex w-full lg:w-1/2 flex-col items-center justify-center p-8 bg-background">
+        <div className="absolute top-4 right-4 md:top-8 md:right-8">
+          <ThemeToggle />
+        </div>
         <div className="w-full max-w-sm space-y-8">
           <div className="space-y-2 text-center lg:text-left">
             <h2 className="text-3xl font-bold tracking-tight">Create an account</h2>
