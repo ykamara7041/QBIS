@@ -23,6 +23,8 @@ export default function RegisterForm() {
       const res = await registerUser(formData)
       if (res?.error) {
         setError(res.error)
+      } else if (res?.success) {
+        window.location.href = res.redirectTo || "/onboarding"
       }
     })
   }

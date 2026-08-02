@@ -23,6 +23,8 @@ export default function LoginForm() {
       const res = await loginUser(formData)
       if (res?.error) {
         setError(res.error)
+      } else if (res?.success) {
+        window.location.href = res.redirectTo || "/dashboard"
       }
     })
   }
