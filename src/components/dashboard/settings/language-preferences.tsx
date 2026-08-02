@@ -48,7 +48,7 @@ export function LanguagePreferences({ userId, currentLanguage }: LanguagePrefere
       <div className="space-y-4">
         <div className="grid gap-2">
           <Label>Display Language</Label>
-          <Select value={language} onValueChange={setLanguage}>
+          <Select value={language} onValueChange={(val) => setLanguage(val || "en")}>
             <SelectTrigger>
               <SelectValue placeholder="Select Language" />
             </SelectTrigger>

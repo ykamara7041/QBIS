@@ -56,7 +56,7 @@ export function RevenueChart({ data }: RevenueChartProps) {
           tickFormatter={(value) => `$${value / 1000}k`}
         />
         <Tooltip 
-          formatter={(value: number) => [`$${value.toLocaleString()}`, undefined]}
+          formatter={(value: any) => [`$${Number(value || 0).toLocaleString()}`, undefined]}
           contentStyle={{ backgroundColor: 'hsl(var(--background))', borderColor: 'hsl(var(--border))', borderRadius: '8px' }}
         />
         <Legend />

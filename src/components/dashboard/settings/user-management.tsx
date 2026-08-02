@@ -97,6 +97,7 @@ export function UserManagement({ organizationId, members, isAdmin }: UserManagem
         </div>
         {isAdmin && (
           <Dialog open={isOpen} onOpenChange={setIsOpen}>
+            {/* @ts-expect-error - asChild type issue */}
             <DialogTrigger asChild>
               <Button>Add User</Button>
             </DialogTrigger>
@@ -120,7 +121,7 @@ export function UserManagement({ organizationId, members, isAdmin }: UserManagem
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="role">Role</Label>
-                  <Select value={newRole} onValueChange={setNewRole}>
+                  <Select value={newRole} onValueChange={(val) => setNewRole(val || "DATA_ENTRY")}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select a role" />
                     </SelectTrigger>
@@ -158,7 +159,7 @@ export function UserManagement({ organizationId, members, isAdmin }: UserManagem
                 <TableCell>{member.email}</TableCell>
                 <TableCell>
                   {isAdmin ? (
-                    <Select defaultValue={member.role} onValueChange={(val) => handleRoleChange(member.id, val)}>
+                    <Select defaultValue={member.role} onValueChange={(val) => handleRoleChange(member.id, val || "")}>
                       <SelectTrigger className="w-[140px] h-8 text-xs">
                         <SelectValue />
                       </SelectTrigger>

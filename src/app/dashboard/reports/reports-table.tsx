@@ -88,7 +88,7 @@ export function ReportsTable({ transactions, defaultCurrency }: { transactions: 
         
         <div className="flex items-center gap-2">
           <span className="text-sm text-muted-foreground whitespace-nowrap">Report Lang:</span>
-          <Select value={reportLang} onValueChange={setReportLang}>
+          <Select value={reportLang} onValueChange={(val) => setReportLang(val || "en")}>
             <SelectTrigger className="w-[120px]">
               <SelectValue />
             </SelectTrigger>
@@ -104,7 +104,7 @@ export function ReportsTable({ transactions, defaultCurrency }: { transactions: 
 
         <div className="flex items-center gap-2">
           <span className="text-sm text-muted-foreground whitespace-nowrap">Report Currency:</span>
-          <Select value={reportCurrency} onValueChange={setReportCurrency}>
+          <Select value={reportCurrency} onValueChange={(val) => setReportCurrency(val || "GNF")}>
             <SelectTrigger className="w-[120px]">
               <SelectValue />
             </SelectTrigger>

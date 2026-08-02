@@ -44,7 +44,7 @@ export function CurrencyViewer({ totalGNF }: CurrencyViewerProps) {
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="space-y-2">
-            <Select value={selectedCurrency} onValueChange={setSelectedCurrency}>
+            <Select value={selectedCurrency} onValueChange={(val) => setSelectedCurrency(val || "USD")}>
               <SelectTrigger>
                 <SelectValue placeholder="Select target currency" />
               </SelectTrigger>

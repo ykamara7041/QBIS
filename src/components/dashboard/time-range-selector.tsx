@@ -29,7 +29,7 @@ export function TimeRangeSelector() {
       <span className="text-sm font-medium text-muted-foreground whitespace-nowrap">
         {t("dashboard.time_range") || "Time Range:"}
       </span>
-      <Select value={currentRange} onValueChange={handleRangeChange}>
+      <Select value={currentRange} onValueChange={(val) => handleRangeChange(val || "year")}>
         <SelectTrigger className="w-[150px] bg-background">
           <SelectValue placeholder="Select Range" />
         </SelectTrigger>

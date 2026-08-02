@@ -57,12 +57,12 @@ export async function addOrganizationMember(organizationId: string, email: strin
       }
     },
     update: {
-      role
+      role: role as any
     },
     create: {
       userId: user.id,
       organizationId: organizationId,
-      role
+      role: role as any
     }
   })
 
@@ -98,7 +98,7 @@ export async function updateMemberRole(userId: string, organizationId: string, r
   // For simplicity, we just execute the update
   await db.organizationMember.update({
     where: { userId_organizationId: { userId, organizationId } },
-    data: { role }
+    data: { role: role as any }
   })
 
   console.log(`

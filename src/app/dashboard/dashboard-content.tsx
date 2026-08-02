@@ -1,6 +1,6 @@
 "use client"
 
-import { motion } from "framer-motion"
+import { motion, Variants } from "framer-motion"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { BanknoteIcon, TargetIcon, BotIcon } from "lucide-react"
 import { RevenueChart, RevenueDataPoint } from "@/components/dashboard/revenue-chart"
@@ -15,7 +15,7 @@ interface DashboardContentProps {
   currency: string
 }
 
-const containerVariants = {
+const containerVariants: Variants = {
   hidden: { opacity: 0 },
   show: {
     opacity: 1,
@@ -26,7 +26,7 @@ const containerVariants = {
   }
 }
 
-const itemVariants = {
+const itemVariants: Variants = {
   hidden: { opacity: 0, y: 20 },
   show: { 
     opacity: 1, 
