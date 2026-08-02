@@ -3,6 +3,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { MenuToggleIcon } from '@/components/ui/menu-toggle-icon';
+import { ThemeToggle } from '@/components/theme-toggle';
 import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import { TrendingUpIcon } from 'lucide-react';
@@ -46,6 +47,7 @@ export function Header() {
 					</div>
 				</div>
 				<div className="hidden items-center gap-2 md:flex">
+					<ThemeToggle />
 					<Button variant="outline" asChild>
 						<Link href="/login">Login</Link>
 					</Button>
@@ -53,17 +55,19 @@ export function Header() {
 						<Link href="/register">Get Started</Link>
 					</Button>
 				</div>
-				<Button
-					size="icon"
-					variant="outline"
-					onClick={() => setOpen(!open)}
-					className="md:hidden"
-					aria-expanded={open}
-					aria-controls="mobile-menu"
-					aria-label="Toggle menu"
-				>
-					<MenuToggleIcon open={open} className="size-5" duration={300} />
-				</Button>
+				<div className="md:hidden flex items-center gap-2">
+					<ThemeToggle />
+					<Button
+						size="icon"
+						variant="outline"
+						onClick={() => setOpen(!open)}
+						aria-expanded={open}
+						aria-controls="mobile-menu"
+						aria-label="Toggle menu"
+					>
+						<MenuToggleIcon open={open} className="size-5" duration={300} />
+					</Button>
+				</div>
 			</nav>
 			<MobileMenu open={open} className="flex flex-col justify-between gap-2 overflow-y-auto">
 				<div className="flex w-full flex-col gap-y-4 pt-4">
