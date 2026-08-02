@@ -6,12 +6,12 @@ import Credentials from "next-auth/providers/credentials"
 import Google from "next-auth/providers/google"
 
 function getSecret() {
-  if (process.env.AUTH_SECRET) return process.env.AUTH_SECRET
-  if (process.env.NEXTAUTH_SECRET) return process.env.NEXTAUTH_SECRET
-  if (process.env.NODE_ENV === "production") {
+  // Read explicitly at runtime; Vercel injects env vars into server functions.
+  const secret = process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET || ""
+  if (!secret && process.env.NODE_ENV === "production") {
     throw new Error("AUTH_SECRET or NEXTAUTH_SECRET is required in production")
   }
-  return "fallback-dev-secret-do-not-use-in-production"
+  return secret || "fallback-dev-secret-do-not-use-in-production"
 }
 
 export const authConfig = {
