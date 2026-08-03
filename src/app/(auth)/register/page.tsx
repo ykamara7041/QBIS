@@ -2,6 +2,8 @@ import RegisterForm from "./register-form"
 import Link from "next/link"
 import { ThemeToggle } from "@/components/theme-toggle"
 
+export const dynamic = "force-dynamic"
+
 export default function RegisterPage() {
   return (
     <div className="flex min-h-screen">

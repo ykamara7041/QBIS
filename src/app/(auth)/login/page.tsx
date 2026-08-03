@@ -2,6 +2,8 @@ import LoginForm from "./login-form"
 import Link from "next/link"
 import { ThemeToggle } from "@/components/theme-toggle"
 
+export const dynamic = "force-dynamic"
+
 export default function LoginPage() {
   return (
     <div className="flex min-h-screen">
