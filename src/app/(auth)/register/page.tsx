@@ -25,7 +25,7 @@ export default function RegisterPage() {
         },
         {
           icon: <Sparkles className="h-5 w-5 text-blue-300" />,
-          text: "AI-powered insights",
+          text: "Executive reporting",
         },
       ]}
       previewCard={{

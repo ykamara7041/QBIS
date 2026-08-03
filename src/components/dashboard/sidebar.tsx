@@ -8,7 +8,6 @@ import {
   LayoutDashboardIcon, 
   BanknoteIcon, 
   TargetIcon, 
-  BotIcon, 
   SettingsIcon,
   CheckSquareIcon,
   FileTextIcon
@@ -22,7 +21,6 @@ const navigation = [
   { translationKey: 'nav.approvals', href: '/dashboard/approvals', icon: CheckSquareIcon },
   { translationKey: 'nav.targets', href: '/dashboard/targets', icon: TargetIcon },
   { translationKey: 'nav.reports', href: '/dashboard/reports', icon: FileTextIcon },
-  { translationKey: 'nav.ai_insights', href: '/dashboard/ai', icon: BotIcon },
   { translationKey: 'nav.settings', href: '/dashboard/settings', icon: SettingsIcon },
 ]
 

@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { ArrowUpRight, Banknote, Bot, CheckCircle2, Clock3, Plus, Target } from "lucide-react"
+import { ArrowUpRight, Banknote, CheckCircle2, Clock3, Plus, Target } from "lucide-react"
 import { RevenueChart, RevenueDataPoint } from "@/components/dashboard/revenue-chart"
 import { TimeRangeSelector } from "@/components/dashboard/time-range-selector"
 import { formatCurrency } from "@/lib/utils"
@@ -9,7 +9,6 @@ import { formatCurrency } from "@/lib/utils"
 interface DashboardContentProps {
   userName: string
   chartData: RevenueDataPoint[]
-  aiInsightsFeed: React.ReactNode
   totalRevenue: number
   currency: string
 }
@@ -29,7 +28,7 @@ function MetricCard({ label, value, note, icon: Icon, tone }: { label: string; v
   )
 }
 
-export function DashboardContent({ userName, chartData, aiInsightsFeed, totalRevenue, currency }: DashboardContentProps) {
+export function DashboardContent({ userName, chartData, totalRevenue, currency }: DashboardContentProps) {
   const firstName = userName.split(" ")[0]
   const hasRevenue = totalRevenue > 0
 
@@ -49,25 +48,19 @@ export function DashboardContent({ userName, chartData, aiInsightsFeed, totalRev
         </div>
       </header>
 
-      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <section className="grid gap-4 sm:grid-cols-3">
         <MetricCard label="Total Revenue" value={formatCurrency(totalRevenue, currency)} note={hasRevenue ? "Approved revenue in this period" : "Add your first approved transaction"} icon={Banknote} tone="bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400" />
         <MetricCard label="Target Achievement" value={hasRevenue ? "72%" : "0%"} note="Performance against active goals" icon={Target} tone="bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400" />
         <MetricCard label="Pending Approvals" value="0" note="Transactions awaiting review" icon={Clock3} tone="bg-amber-50 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400" />
-        <MetricCard label="AI Forecast" value={hasRevenue ? "Positive" : "Ready"} note={hasRevenue ? "Forecast based on approved revenue" : "Waiting for transaction data"} icon={Bot} tone="bg-violet-50 text-violet-600 dark:bg-violet-500/10 dark:text-violet-400" />
       </section>
 
-      <section className="grid gap-5 xl:grid-cols-[minmax(0,1.7fr)_minmax(320px,.75fr)]">
+      <section className="grid gap-5">
         <article className="qbix-card min-w-0 p-5 sm:p-6">
           <div className="mb-5 flex items-start justify-between gap-4">
             <div><h2 className="font-semibold">Revenue Performance</h2><p className="mt-1 text-sm text-muted-foreground">Actual revenue compared with target</p></div>
-            <Link href="/dashboard/reports" className="hidden items-center gap-1 text-sm font-semibold text-primary sm:flex">View report <ArrowUpRight className="h-4 w-4" /></Link>
+            <Link href="/dashboard/reports" className="flex items-center gap-1 text-sm font-semibold text-primary">View report <ArrowUpRight className="h-4 w-4" /></Link>
           </div>
           <RevenueChart data={chartData} currency={currency} />
-        </article>
-
-        <article className="qbix-card p-5 sm:p-6">
-          <div className="flex items-center gap-3"><div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-violet-50 text-violet-600 dark:bg-violet-500/10 dark:text-violet-300"><Bot className="h-5 w-5" /></div><div><h2 className="font-semibold">AI Insight</h2><p className="text-xs text-muted-foreground">Financial performance summary</p></div></div>
-          <div className="mt-5">{aiInsightsFeed}</div>
         </article>
       </section>
 

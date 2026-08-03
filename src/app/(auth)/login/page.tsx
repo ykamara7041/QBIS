@@ -29,7 +29,7 @@ export default function LoginPage() {
           <div className="mt-8 grid max-w-xl grid-cols-3 gap-3 text-sm text-slate-200">
             <div className="flex items-center gap-2"><WalletCards className="h-5 w-5 text-blue-300" /> Multi-currency</div>
             <div className="flex items-center gap-2"><ShieldCheck className="h-5 w-5 text-blue-300" /> Secure approvals</div>
-            <div className="flex items-center gap-2"><Sparkles className="h-5 w-5 text-blue-300" /> AI insights</div>
+            <div className="flex items-center gap-2"><Sparkles className="h-5 w-5 text-blue-300" /> Executive reports</div>
           </div>
 
           <div className="mt-10 rounded-2xl border border-white/15 bg-white/[0.07] p-5 shadow-2xl backdrop-blur-sm">
