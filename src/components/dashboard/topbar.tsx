@@ -14,7 +14,6 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { Sidebar } from "./sidebar"
 import { logoutUser } from "@/actions/auth"
 import { ThemeToggle } from "@/components/theme-toggle"
-import Link from "next/link"
 import { useState } from "react"
 import { useLanguage } from "@/components/providers/language-provider"
 
@@ -33,6 +32,10 @@ export function Topbar({ user }: TopbarProps) {
   const handleLogout = async () => {
     await logoutUser()
     window.location.href = "/login"
+  }
+
+  const navigateToSettings = () => {
+    window.location.href = "/dashboard/settings"
   }
 
   const getInitials = (name?: string | null) => {
@@ -65,7 +68,7 @@ export function Topbar({ user }: TopbarProps) {
       <ThemeToggle />
       
       <DropdownMenu>
-        <DropdownMenuTrigger className="inline-flex items-center gap-2 rounded-xl p-1.5 pr-2 transition hover:bg-muted">
+        <DropdownMenuTrigger className="inline-flex items-center gap-2 rounded-xl p-1.5 pr-2 transition hover:bg-muted cursor-pointer">
           <Avatar className="h-9 w-9">
             <AvatarImage src={user.image || ""} alt={user.name || "User"} />
             <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
@@ -76,23 +79,19 @@ export function Topbar({ user }: TopbarProps) {
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           <DropdownMenuLabel>
-            <div className="flex flex-col space-y-1">
+            <div className="flex flex-col space-y-1 cursor-pointer" onClick={navigateToSettings}>
               <p className="text-sm font-medium leading-none">{user.name}</p>
               <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
             </div>
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
-          <DropdownMenuItem className="p-0">
-            <Link href="/dashboard/settings" className="flex w-full items-center px-2 py-1.5 text-sm">
-              <UserIcon className="mr-2 h-4 w-4" />
-              <span>{t('topbar.my_account')}</span>
-            </Link>
+          <DropdownMenuItem onClick={navigateToSettings} className="cursor-pointer">
+            <UserIcon className="mr-2 h-4 w-4" />
+            <span>{t('topbar.my_account')}</span>
           </DropdownMenuItem>
-          <DropdownMenuItem className="p-0">
-            <Link href="/dashboard/settings" className="flex w-full items-center px-2 py-1.5 text-sm">
-              <Settings className="mr-2 h-4 w-4" />
-              <span>{t('nav.settings')}</span>
-            </Link>
+          <DropdownMenuItem onClick={navigateToSettings} className="cursor-pointer">
+            <Settings className="mr-2 h-4 w-4" />
+            <span>{t('nav.settings')}</span>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:bg-destructive focus:text-destructive-foreground cursor-pointer">

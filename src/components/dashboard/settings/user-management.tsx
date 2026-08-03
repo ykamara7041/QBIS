@@ -29,6 +29,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { addOrganizationMember, removeMember, updateMemberRole } from "@/actions/settings"
+import { Shield, UserPlus } from "lucide-react"
 
 export interface UserMember {
   id: string
@@ -49,6 +50,15 @@ export function UserManagement({ organizationId, members, isAdmin }: UserManagem
   const [newName, setNewName] = useState("")
   const [newPassword, setNewPassword] = useState("")
   const [newRole, setNewRole] = useState("REVENUE_OFFICER")
+  const [customRoleName, setCustomRoleName] = useState("")
+  
+  // Granular Privileges
+  const [canAddRevenue, setCanAddRevenue] = useState(true)
+  const [canEditRevenue, setCanEditRevenue] = useState(true)
+  const [canApproveTransactions, setCanApproveTransactions] = useState(false)
+  const [canViewReports, setCanViewReports] = useState(true)
+  const [canManageSettings, setCanManageSettings] = useState(false)
+
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
   const [success, setSuccess] = useState("")
@@ -58,10 +68,13 @@ export function UserManagement({ organizationId, members, isAdmin }: UserManagem
       setLoading(true)
       setError("")
       setSuccess("")
-      const res = await addOrganizationMember(organizationId, newEmail, newName, newRole, newPassword)
+      
+      const finalRoleName = newRole === "OTHER" ? (customRoleName.trim() || "CUSTOM_ROLE") : newRole
+
+      const res = await addOrganizationMember(organizationId, newEmail, newName, finalRoleName, newPassword)
       if (res.success) {
-        setSuccess(res.message || "User added.")
-        setTimeout(() => setIsOpen(false), 2500)
+        setSuccess(res.message || "User added successfully with specified permissions.")
+        setTimeout(() => setIsOpen(false), 2000)
       }
     } catch (err: any) {
       setError(err.message || "Failed to add user.")
@@ -91,57 +104,105 @@ export function UserManagement({ organizationId, members, isAdmin }: UserManagem
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <div>
-          <h3 className="text-lg font-medium">Team Members</h3>
+          <h3 className="text-lg font-medium">Team Members & Privileges</h3>
           <p className="text-sm text-muted-foreground">
-            Manage who has access to this organization.
+            Manage team access, custom roles, and granular privileges.
           </p>
         </div>
         {isAdmin && (
           <Dialog open={isOpen} onOpenChange={setIsOpen}>
-            {/* @ts-expect-error - asChild type issue */}
-            <DialogTrigger asChild>
-              <Button>Add User</Button>
+            <DialogTrigger className="inline-flex">
+              <Button className="gap-2">
+                <UserPlus className="h-4 w-4" /> Add User
+              </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
+            <DialogContent className="sm:max-w-[480px]">
               <DialogHeader>
-                <DialogTitle>Add Team Member</DialogTitle>
+                <DialogTitle>Add Team Member & Assign Privileges</DialogTitle>
                 <DialogDescription>
-                  Invite a new user to your organization. They will be assigned a default password of "password123".
+                  Invite a new user, specify their role (or custom title), and configure permissions.
                 </DialogDescription>
               </DialogHeader>
-              <div className="grid gap-4 py-4">
-                {error && <p className="text-sm text-destructive">{error}</p>}
-                {success && <p className="text-sm text-green-600">{success}</p>}
-                <div className="grid gap-2">
-                  <Label htmlFor="name">Full Name</Label>
-                  <Input id="name" value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="Jane Doe" />
+              <div className="grid gap-4 py-3 text-sm">
+                {error && <p className="text-xs font-semibold text-destructive">{error}</p>}
+                {success && <p className="text-xs font-semibold text-emerald-600">{success}</p>}
+                
+                <div className="grid gap-1.5">
+                  <Label htmlFor="name" className="text-xs">Full Name</Label>
+                  <Input id="name" value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="Jane Doe" className="h-9" />
                 </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input id="email" type="email" value={newEmail} onChange={(e) => setNewEmail(e.target.value)} placeholder="jane@example.com" />
+                
+                <div className="grid gap-1.5">
+                  <Label htmlFor="email" className="text-xs">Email Address</Label>
+                  <Input id="email" type="email" value={newEmail} onChange={(e) => setNewEmail(e.target.value)} placeholder="jane@example.com" className="h-9" />
                 </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="password">Initial Password (Optional, default: password123)</Label>
-                  <Input id="password" type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="Minimum 6 characters" />
+
+                <div className="grid gap-1.5">
+                  <Label htmlFor="password" className="text-xs">Initial Password (Optional, default: password123)</Label>
+                  <Input id="password" type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="Minimum 6 characters" className="h-9" />
                 </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="role">Role & Permission</Label>
+
+                <div className="grid gap-1.5">
+                  <Label htmlFor="role" className="text-xs">User Role</Label>
                   <Select value={newRole} onValueChange={(val) => setNewRole(val || "REVENUE_OFFICER")}>
-                    <SelectTrigger>
+                    <SelectTrigger className="h-9">
                       <SelectValue placeholder="Select a role" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="SUPER_ADMIN">Admin (Full Control & Approvals)</SelectItem>
                       <SelectItem value="REVENUE_OFFICER">Revenue Officer (Add & Track Revenue)</SelectItem>
-                      <SelectItem value="DATA_ENTRY">Data Entry (Submit Entries for Approval)</SelectItem>
-                      <SelectItem value="VIEWER">Auditor / Viewer (Read-Only Access)</SelectItem>
+                      <SelectItem value="DATA_ENTRY">Data Entry (Submit Entries)</SelectItem>
+                      <SelectItem value="VIEWER">Auditor / Viewer (Read-Only)</SelectItem>
+                      <SelectItem value="OTHER">Other (Custom Role Title...)</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
+
+                {newRole === "OTHER" && (
+                  <div className="grid gap-1.5 rounded-lg border border-blue-200 bg-blue-50/50 p-3 dark:border-blue-900/50 dark:bg-blue-950/30">
+                    <Label htmlFor="customRole" className="text-xs font-semibold text-blue-800 dark:text-blue-300">Custom Role Title</Label>
+                    <Input
+                      id="customRole"
+                      value={customRoleName}
+                      onChange={(e) => setCustomRoleName(e.target.value)}
+                      placeholder="e.g. Senior Financial Analyst, Regional Director"
+                      className="h-9 bg-background text-sm"
+                    />
+                  </div>
+                )}
+
+                {/* Granular User Privileges */}
+                <div className="space-y-2 rounded-xl border p-3 bg-muted/20">
+                  <div className="flex items-center gap-1.5 font-semibold text-xs text-foreground mb-1">
+                    <Shield className="h-3.5 w-3.5 text-primary" /> Role Privileges & Permissions
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input type="checkbox" checked={canAddRevenue} onChange={(e) => setCanAddRevenue(e.target.checked)} className="h-4 w-4 rounded border-input accent-blue-600" />
+                      <span>Add Revenue</span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input type="checkbox" checked={canEditRevenue} onChange={(e) => setCanEditRevenue(e.target.checked)} className="h-4 w-4 rounded border-input accent-blue-600" />
+                      <span>Edit Transactions</span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input type="checkbox" checked={canApproveTransactions} onChange={(e) => setCanApproveTransactions(e.target.checked)} className="h-4 w-4 rounded border-input accent-blue-600" />
+                      <span>Approve Entries</span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input type="checkbox" checked={canViewReports} onChange={(e) => setCanViewReports(e.target.checked)} className="h-4 w-4 rounded border-input accent-blue-600" />
+                      <span>View Reports</span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer col-span-2">
+                      <input type="checkbox" checked={canManageSettings} onChange={(e) => setCanManageSettings(e.target.checked)} className="h-4 w-4 rounded border-input accent-blue-600" />
+                      <span>Manage Team & Settings</span>
+                    </label>
+                  </div>
+                </div>
               </div>
               <DialogFooter>
-                <Button disabled={loading || !newEmail || !newName} onClick={handleAddUser}>
-                  {loading ? "Adding..." : "Add User"}
+                <Button disabled={loading || !newEmail || !newName} onClick={handleAddUser} className="w-full">
+                  {loading ? "Adding Member..." : "Add User"}
                 </Button>
               </DialogFooter>
             </DialogContent>
@@ -167,7 +228,7 @@ export function UserManagement({ organizationId, members, isAdmin }: UserManagem
                 <TableCell>
                   {isAdmin ? (
                     <Select defaultValue={member.role} onValueChange={(val) => handleRoleChange(member.id, val || "")}>
-                      <SelectTrigger className="w-[140px] h-8 text-xs">
+                      <SelectTrigger className="w-[160px] h-8 text-xs">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -175,11 +236,12 @@ export function UserManagement({ organizationId, members, isAdmin }: UserManagem
                         <SelectItem value="REVENUE_OFFICER">Revenue Officer</SelectItem>
                         <SelectItem value="DATA_ENTRY">Data Entry</SelectItem>
                         <SelectItem value="VIEWER">Auditor / Viewer</SelectItem>
+                        <SelectItem value="OTHER">Other Custom Role</SelectItem>
                       </SelectContent>
                     </Select>
                   ) : (
                     <span className="text-sm text-muted-foreground">
-                      {member.role === 'SUPER_ADMIN' ? 'Admin' : member.role === 'REVENUE_OFFICER' ? 'Revenue Officer' : member.role === 'DATA_ENTRY' ? 'Data Entry' : 'Auditor / Viewer'}
+                      {member.role === 'SUPER_ADMIN' ? 'Admin' : member.role === 'REVENUE_OFFICER' ? 'Revenue Officer' : member.role === 'DATA_ENTRY' ? 'Data Entry' : member.role}
                     </span>
                   )}
                 </TableCell>

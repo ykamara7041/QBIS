@@ -1,15 +1,18 @@
 "use client"
 
 import Link from "next/link"
-import { ArrowUpRight, Banknote, CheckCircle2, Clock3, Plus, Target } from "lucide-react"
+import { ArrowUpRight, Banknote, CheckCircle2, Clock3, MinusCircle, Plus, DollarSign, Target } from "lucide-react"
 import { RevenueChart, RevenueDataPoint } from "@/components/dashboard/revenue-chart"
 import { TimeRangeSelector } from "@/components/dashboard/time-range-selector"
+import { AddExpenseDialog } from "@/components/dashboard/add-expense-dialog"
 import { formatCurrency } from "@/lib/utils"
 
 interface DashboardContentProps {
   userName: string
   chartData: RevenueDataPoint[]
   totalRevenue: number
+  totalExpenses: number
+  netProfit: number
   currency: string
 }
 
@@ -28,7 +31,7 @@ function MetricCard({ label, value, note, icon: Icon, tone }: { label: string; v
   )
 }
 
-export function DashboardContent({ userName, chartData, totalRevenue, currency }: DashboardContentProps) {
+export function DashboardContent({ userName, chartData, totalRevenue, totalExpenses, netProfit, currency }: DashboardContentProps) {
   const firstName = userName.split(" ")[0]
   const hasRevenue = totalRevenue > 0
 
@@ -38,20 +41,46 @@ export function DashboardContent({ userName, chartData, totalRevenue, currency }
         <div>
           <p className="text-sm font-semibold text-primary">OVERVIEW</p>
           <h1 className="mt-1 text-3xl font-bold tracking-[-0.025em]">Good morning, {firstName}</h1>
-          <p className="mt-1.5 text-muted-foreground">Here&apos;s how your organization&apos;s revenue is performing.</p>
+          <p className="mt-1.5 text-muted-foreground">Here&apos;s how your organization&apos;s revenue and expenses are performing.</p>
         </div>
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+        <div className="flex flex-wrap gap-2 items-center">
           <TimeRangeSelector />
+          <AddExpenseDialog />
           <Link href="/dashboard/revenue/add" className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-sm transition hover:bg-blue-700">
             <Plus className="h-4 w-4" /> Add revenue
           </Link>
         </div>
       </header>
 
-      <section className="grid gap-4 sm:grid-cols-3">
-        <MetricCard label="Total Revenue" value={formatCurrency(totalRevenue, currency)} note={hasRevenue ? "Approved revenue in this period" : "Add your first approved transaction"} icon={Banknote} tone="bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400" />
-        <MetricCard label="Target Achievement" value={hasRevenue ? "72%" : "0%"} note="Performance against active goals" icon={Target} tone="bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400" />
-        <MetricCard label="Pending Approvals" value="0" note="Transactions awaiting review" icon={Clock3} tone="bg-amber-50 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400" />
+      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <MetricCard
+          label="Total Revenue"
+          value={formatCurrency(totalRevenue, currency)}
+          note={hasRevenue ? "Approved income in period" : "Add your first approved transaction"}
+          icon={Banknote}
+          tone="bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400"
+        />
+        <MetricCard
+          label="Operating Expenses"
+          value={formatCurrency(totalExpenses, currency)}
+          note={totalExpenses > 0 ? "Total recorded expenditure" : "No expenses logged"}
+          icon={MinusCircle}
+          tone="bg-rose-50 text-rose-600 dark:bg-rose-500/10 dark:text-rose-400"
+        />
+        <MetricCard
+          label="Net Profit"
+          value={formatCurrency(netProfit, currency)}
+          note="Calculated as (Total Revenue - Expenses)"
+          icon={DollarSign}
+          tone={netProfit >= 0 ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400" : "bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400"}
+        />
+        <MetricCard
+          label="Target Achievement"
+          value={hasRevenue ? "72%" : "0%"}
+          note="Performance against active goals"
+          icon={Target}
+          tone="bg-violet-50 text-violet-600 dark:bg-violet-500/10 dark:text-violet-400"
+        />
       </section>
 
       <section className="grid gap-5">
