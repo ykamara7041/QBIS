@@ -23,12 +23,14 @@ import {
 } from "@/components/ui/select"
 import { addExpenseTransaction } from "@/actions/expense"
 import { Loader2, MinusCircle } from "lucide-react"
+import { useLanguage } from "@/components/providers/language-provider"
 
 export function AddExpenseDialog() {
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
   const router = useRouter()
+  const { t } = useLanguage()
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -60,14 +62,14 @@ export function AddExpenseDialog() {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger className="inline-flex">
         <Button variant="outline" className="h-10 border-rose-200 text-rose-700 hover:bg-rose-50 hover:text-rose-800 dark:border-rose-900/50 dark:text-rose-400 dark:hover:bg-rose-950/50">
-          <MinusCircle className="mr-1.5 h-4 w-4" /> Add Expense
+          <MinusCircle className="mr-1.5 h-4 w-4" /> {t('dashboard.add_expense')}
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Record Operating Expense</DialogTitle>
+          <DialogTitle>{t('dashboard.add_expense')}</DialogTitle>
           <DialogDescription>
-            Log company expenditures to calculate net income and cash flow accurately.
+            {t('dashboard.subheading')}
           </DialogDescription>
         </DialogHeader>
 
@@ -76,7 +78,7 @@ export function AddExpenseDialog() {
 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <Label htmlFor="amount" className="text-xs">Expense Amount</Label>
+              <Label htmlFor="amount" className="text-xs">{t('revenue.add.amount')}</Label>
               <Input
                 id="amount"
                 name="amount"
@@ -88,7 +90,7 @@ export function AddExpenseDialog() {
               />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="currency" className="text-xs">Currency</Label>
+              <Label htmlFor="currency" className="text-xs">{t('revenue.add.currency')}</Label>
               <Select name="currency" defaultValue="GNF">
                 <SelectTrigger className="h-10 text-sm">
                   <SelectValue placeholder="Select currency" />
@@ -106,7 +108,7 @@ export function AddExpenseDialog() {
           </div>
 
           <div className="space-y-1.5">
-            <Label htmlFor="description" className="text-xs">Expense Description</Label>
+            <Label htmlFor="description" className="text-xs">{t('revenue.add.desc')}</Label>
             <Input
               id="description"
               name="description"
@@ -118,7 +120,7 @@ export function AddExpenseDialog() {
 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <Label htmlFor="category" className="text-xs">Category</Label>
+              <Label htmlFor="category" className="text-xs">{t('revenue.add.category')}</Label>
               <Select name="category" defaultValue="Operational Expense">
                 <SelectTrigger className="h-10 text-sm">
                   <SelectValue placeholder="Select category" />
@@ -134,7 +136,7 @@ export function AddExpenseDialog() {
               </Select>
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="paymentMethod" className="text-xs">Payment Method</Label>
+              <Label htmlFor="paymentMethod" className="text-xs">{t('revenue.add.payment')}</Label>
               <Select name="paymentMethod" defaultValue="Bank Transfer">
                 <SelectTrigger className="h-10 text-sm">
                   <SelectValue placeholder="Select method" />
@@ -151,7 +153,7 @@ export function AddExpenseDialog() {
 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <Label htmlFor="vendorName" className="text-xs">Vendor / Supplier</Label>
+              <Label htmlFor="vendorName" className="text-xs">{t('revenue.add.customer')}</Label>
               <Input
                 id="vendorName"
                 name="vendorName"
@@ -160,7 +162,7 @@ export function AddExpenseDialog() {
               />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="receiptNumber" className="text-xs">Invoice / Receipt #</Label>
+              <Label htmlFor="receiptNumber" className="text-xs">{t('revenue.add.receipt')}</Label>
               <Input
                 id="receiptNumber"
                 name="receiptNumber"
@@ -172,10 +174,10 @@ export function AddExpenseDialog() {
 
           <DialogFooter className="pt-4 border-t">
             <Button type="button" variant="outline" size="sm" onClick={() => setOpen(false)} className="h-9 text-xs">
-              Cancel
+              {t('revenue.add.cancel')}
             </Button>
             <Button type="submit" size="sm" disabled={loading} className="h-9 text-xs bg-rose-600 hover:bg-rose-700 text-white">
-              {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Save Expense"}
+              {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : t('dashboard.add_expense')}
             </Button>
           </DialogFooter>
         </form>
