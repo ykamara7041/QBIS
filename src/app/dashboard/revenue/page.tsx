@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { BanknoteIcon, TrendingUpIcon } from "lucide-react"
 import { redirect } from "next/navigation"
 import Link from "next/link"
+import { EditTransactionDialog } from "@/components/dashboard/edit-transaction-dialog"
 
 export default async function RevenuePage() {
   const session = await auth()
@@ -27,7 +28,7 @@ export default async function RevenuePage() {
   const transactions = await db.revenueTransaction.findMany({
     where: { organizationId: member.organizationId },
     orderBy: { date: 'desc' },
-    take: 5
+    take: 20
   })
 
   // Aggregate approved transactions for chart
@@ -61,7 +62,7 @@ export default async function RevenuePage() {
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Revenue Management</h1>
         <p className="text-muted-foreground">
-          Track and analyze transactions across {member.organization.name}.
+          Track, edit, and analyze transactions across {member.organization.name}.
         </p>
       </div>
 
@@ -110,8 +111,8 @@ export default async function RevenuePage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Recent Transactions</CardTitle>
-          <CardDescription>Latest logged revenue events</CardDescription>
+          <CardTitle>Recorded Transactions</CardTitle>
+          <CardDescription>Click Edit on any transaction to update amounts or details</CardDescription>
         </CardHeader>
         <CardContent>
           {transactions.length === 0 ? (
@@ -119,13 +120,25 @@ export default async function RevenuePage() {
           ) : (
             <div className="divide-y">
               {transactions.map(t => (
-                <div key={t.id} className="flex justify-between py-3">
+                <div key={t.id} className="flex items-center justify-between py-3">
                   <div>
                     <div className="font-medium text-sm">{t.description || "Revenue Entry"}</div>
-                    <div className="text-xs text-muted-foreground">{t.date.toLocaleDateString()} • {t.category}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {new Date(t.date).toLocaleDateString()} • {t.category || "Uncategorized"} {t.agentName ? `• Agent: ${t.agentName}` : ""}
+                    </div>
                   </div>
-                  <div className="font-semibold text-sm">
-                    {t.currency} {t.amount.toLocaleString()}
+                  <div className="flex items-center gap-3">
+                    <div className="text-right">
+                      <div className="font-semibold text-sm">
+                        {t.originalCurrency || t.currency} {(t.originalAmount || t.amount).toLocaleString()}
+                      </div>
+                      {t.originalCurrency !== t.currency && (
+                        <div className="text-[11px] text-muted-foreground">
+                          ≈ {t.currency} {t.amount.toLocaleString()}
+                        </div>
+                      )}
+                    </div>
+                    <EditTransactionDialog transaction={t} />
                   </div>
                 </div>
               ))}

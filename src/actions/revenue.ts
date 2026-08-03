@@ -16,11 +16,14 @@ const revenueSchema = z.object({
   agentName: z.string().optional(),
 })
 
+const updateRevenueSchema = revenueSchema.extend({
+  id: z.string().min(1)
+})
+
 export async function addRevenueTransaction(data: z.infer<typeof revenueSchema>) {
   const session = await auth()
   if (!session?.user) throw new Error("Unauthorized")
 
-  // Validate member access and get org ID automatically
   const member = await db.organizationMember.findFirst({
     where: { userId: session.user.id },
     include: { organization: true }
@@ -34,7 +37,6 @@ export async function addRevenueTransaction(data: z.infer<typeof revenueSchema>)
   let convertedAmount = data.originalAmount
   
   if (data.originalCurrency !== defaultCurrency) {
-    // Standard conversion rates relative to GNF
     const ratesToGNF: Record<string, number> = {
       "USD": 8600,
       "EUR": 9300,
@@ -48,13 +50,10 @@ export async function addRevenueTransaction(data: z.infer<typeof revenueSchema>)
 
     const sourceRateToGNF = ratesToGNF[data.originalCurrency] || 1
     const targetRateToGNF = ratesToGNF[defaultCurrency] || 1
-
-    // Convert from original currency to GNF, then to defaultCurrency
     const amountInGNF = data.originalAmount * sourceRateToGNF
     convertedAmount = amountInGNF / targetRateToGNF
   }
 
-  // Insert the transaction (APPROVED directly if added by user)
   await db.revenueTransaction.create({
     data: {
       organizationId: organizationId,
@@ -78,6 +77,73 @@ export async function addRevenueTransaction(data: z.infer<typeof revenueSchema>)
   return { success: true }
 }
 
+export async function updateRevenueTransaction(data: z.infer<typeof updateRevenueSchema>) {
+  const session = await auth()
+  if (!session?.user) throw new Error("Unauthorized")
+
+  const member = await db.organizationMember.findFirst({
+    where: { userId: session.user.id },
+    include: { organization: true }
+  })
+  
+  if (!member) throw new Error("Unauthorized access to organization")
+  
+  const defaultCurrency = member.organization?.defaultCurrency || "GNF"
+  
+  let convertedAmount = data.originalAmount
+  
+  if (data.originalCurrency !== defaultCurrency) {
+    const ratesToGNF: Record<string, number> = {
+      "USD": 8600,
+      "EUR": 9300,
+      "GBP": 11000,
+      "LRD": 44,
+      "GHS": 580,
+      "NGN": 5.7,
+      "XOF": 14.1,
+      "GNF": 1
+    }
+
+    const sourceRateToGNF = ratesToGNF[data.originalCurrency] || 1
+    const targetRateToGNF = ratesToGNF[defaultCurrency] || 1
+    const amountInGNF = data.originalAmount * sourceRateToGNF
+    convertedAmount = amountInGNF / targetRateToGNF
+  }
+
+  await db.revenueTransaction.update({
+    where: { id: data.id },
+    data: {
+      originalAmount: data.originalAmount,
+      originalCurrency: data.originalCurrency,
+      amount: convertedAmount,
+      currency: defaultCurrency,
+      description: data.description,
+      category: data.category,
+      paymentMethod: data.paymentMethod,
+      customerName: data.customerName,
+      receiptNumber: data.receiptNumber,
+      agentName: data.agentName,
+    }
+  })
+
+  revalidatePath("/dashboard")
+  revalidatePath("/dashboard/revenue")
+  return { success: true }
+}
+
+export async function deleteRevenueTransaction(transactionId: string) {
+  const session = await auth()
+  if (!session?.user) throw new Error("Unauthorized")
+
+  await db.revenueTransaction.delete({
+    where: { id: transactionId }
+  })
+
+  revalidatePath("/dashboard")
+  revalidatePath("/dashboard/revenue")
+  return { success: true }
+}
+
 export async function approveTransaction(transactionId: string) {
   const session = await auth()
   if (!session?.user) throw new Error("Unauthorized")
@@ -87,19 +153,6 @@ export async function approveTransaction(transactionId: string) {
     data: { approvalStatus: "APPROVED" },
     include: { organization: true }
   })
-  
-  console.log(`
-  -------------------------------------------------
-  📧 ADMIN ALERT EMAIL DISPATCHED
-  -------------------------------------------------
-  To: org-admins@${tx.organization.name.toLowerCase().replace(/\s/g, "")}.com
-  Subject: [SECURITY] Revenue Transaction Approved
-  
-  Body:
-  Admin (${session.user.name || session.user.email}) just approved a transaction of ${tx.amount.toLocaleString()} ${tx.currency}.
-  Description: ${tx.description}
-  -------------------------------------------------
-  `)
   
   revalidatePath("/dashboard")
   revalidatePath("/dashboard/revenue")
