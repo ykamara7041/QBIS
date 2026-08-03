@@ -19,9 +19,31 @@ export default async function AiPage() {
     return <div>Access Denied</div>
   }
 
+  // Fetch recent revenue transactions and active goals for rich AI context
+  const transactions = await db.revenueTransaction.findMany({
+    where: {
+      organizationId: member.organizationId,
+      approvalStatus: "APPROVED"
+    },
+    orderBy: { date: "desc" },
+    take: 20
+  })
+
+  const goals = await db.revenueGoal.findMany({
+    where: {
+      organizationId: member.organizationId
+    }
+  })
+
+  const totalRevenue = transactions.reduce((sum, tx) => sum + tx.amount, 0)
+
   const aiContext = `
 Organization: ${member.organization.name}
 Default Currency: ${member.organization.defaultCurrency}
+Total Logged Revenue (Recent Approved): ${totalRevenue} ${member.organization.defaultCurrency}
+Recent Transactions Count: ${transactions.length}
+Active Goals: ${goals.map(g => `${g.title}: ${g.currentAmount}/${g.targetAmount} ${g.currency} (${g.status})`).join("; ") || "None set yet"}
+Recent Sample Transactions: ${transactions.slice(0, 5).map(t => `${t.amount} ${t.currency} [${t.category || "Uncategorized"}] on ${new Date(t.date).toLocaleDateString()}`).join("; ") || "No recent transactions"}
 `
 
   return (

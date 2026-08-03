@@ -8,13 +8,16 @@ export const runtime = "nodejs"
 export async function POST(req: Request) {
   try {
     const { messages, dataContext } = await req.json()
+    const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_GENERATIVE_AI_API_KEY
 
-    if (!process.env.GEMINI_API_KEY) {
-      return NextResponse.json({ error: "GEMINI_API_KEY is not set" }, { status: 400 })
+    if (!apiKey) {
+      return NextResponse.json({
+        error: "GEMINI_API_KEY is not configured in environment variables."
+      }, { status: 400 })
     }
 
-    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY)
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" })
+    const genAI = new GoogleGenerativeAI(apiKey)
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" })
 
     const systemPrompt = `You are a senior financial analyst AI for an enterprise revenue tracking platform called QBIX RevenueTrack AI.
 Your goal is to answer questions about the user's organizational revenue, goals, and performance.
@@ -43,8 +46,8 @@ ${dataContext || "No context provided."}`
 
     const stream = GoogleGenerativeAIStream(geminiStream)
     return new StreamingTextResponse(stream)
-  } catch (error) {
+  } catch (error: any) {
     console.error("AI Chat Error:", error)
-    return NextResponse.json({ error: "Failed to process chat request" }, { status: 500 })
+    return NextResponse.json({ error: error?.message || "Failed to process chat request" }, { status: 500 })
   }
 }
