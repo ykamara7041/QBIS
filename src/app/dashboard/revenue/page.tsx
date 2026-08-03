@@ -13,7 +13,6 @@ export default async function RevenuePage() {
     redirect("/login")
   }
 
-  // Find the first organization the user belongs to for demo purposes
   const member = await db.organizationMember.findFirst({
     where: { userId: session.user.id },
     include: { organization: true }
@@ -23,21 +22,39 @@ export default async function RevenuePage() {
     return <div>No organization found.</div>
   }
 
+  const defaultCurrency = member.organization.defaultCurrency || "GNF"
+
   const transactions = await db.revenueTransaction.findMany({
     where: { organizationId: member.organizationId },
     orderBy: { date: 'desc' },
     take: 5
   })
 
-  // Mock aggregated data for the chart, as we might not have enough seeded data
-  const chartData: RevenueDataPoint[] = [
-    { month: 'Jan', revenue: 15000, target: 14000 },
-    { month: 'Feb', revenue: 20000, target: 18000 },
-    { month: 'Mar', revenue: 18000, target: 22000 },
-    { month: 'Apr', revenue: 27000, target: 25000 },
-    { month: 'May', revenue: 32000, target: 30000 },
-    { month: 'Jun', revenue: 30300, target: 35000 },
-  ]
+  // Aggregate approved transactions for chart
+  const approvedTxs = await db.revenueTransaction.findMany({
+    where: {
+      organizationId: member.organizationId,
+      approvalStatus: "APPROVED"
+    },
+    orderBy: { date: 'asc' }
+  })
+
+  const aggregatedData: Record<string, number> = {}
+  
+  approvedTxs.forEach(tx => {
+    const key = new Date(tx.date).toLocaleDateString("en-US", { month: 'short' })
+    aggregatedData[key] = (aggregatedData[key] || 0) + tx.amount
+  })
+
+  const chartData: RevenueDataPoint[] = Object.entries(aggregatedData).map(([key, value]) => ({
+    month: key,
+    revenue: value,
+    target: Math.round(value * 1.1)
+  }))
+
+  if (chartData.length === 0) {
+    chartData.push({ month: 'No Data', revenue: 0, target: 0 })
+  }
 
   return (
     <div className="space-y-6">
@@ -52,10 +69,10 @@ export default async function RevenuePage() {
         <Card className="col-span-full lg:col-span-5">
           <CardHeader>
             <CardTitle>Revenue vs Target</CardTitle>
-            <CardDescription>Monthly aggregated performance in {member.organization.defaultCurrency}</CardDescription>
+            <CardDescription>Monthly aggregated performance in {defaultCurrency}</CardDescription>
           </CardHeader>
           <CardContent className="pl-0">
-            <RevenueChart data={chartData} />
+            <RevenueChart data={chartData} currency={defaultCurrency} />
           </CardContent>
         </Card>
 
@@ -76,15 +93,17 @@ export default async function RevenuePage() {
                 </div>
               </div>
             </Link>
-            <div className="rounded-lg border bg-card p-4 hover:bg-accent cursor-pointer transition-colors">
-              <div className="flex items-center gap-3">
-                <TrendingUpIcon className="h-5 w-5 text-primary" />
-                <div>
-                  <div className="font-semibold text-sm">Generate Report</div>
-                  <div className="text-xs text-muted-foreground">Export monthly PDF</div>
+            <Link href="/dashboard/reports">
+              <div className="rounded-lg border bg-card p-4 hover:bg-accent cursor-pointer transition-colors">
+                <div className="flex items-center gap-3">
+                  <TrendingUpIcon className="h-5 w-5 text-primary" />
+                  <div>
+                    <div className="font-semibold text-sm">Generate Report</div>
+                    <div className="text-xs text-muted-foreground">Export monthly PDF</div>
+                  </div>
                 </div>
               </div>
-            </div>
+            </Link>
           </CardContent>
         </Card>
       </div>
