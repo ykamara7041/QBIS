@@ -17,17 +17,12 @@ export default function middleware(req: NextRequest) {
   const isPublicRoute = nextUrl.pathname === "/"
   const isAuthRoute = nextUrl.pathname === "/login" || nextUrl.pathname === "/register"
 
-  if (isApiAuthRoute) {
+  // Allow API auth routes and Auth pages (/login, /register) to always render directly
+  if (isApiAuthRoute || isAuthRoute) {
     return NextResponse.next()
   }
 
-  if (isAuthRoute) {
-    if (isLoggedIn) {
-      return NextResponse.redirect(new URL("/dashboard", nextUrl))
-    }
-    return NextResponse.next()
-  }
-
+  // Protect all dashboard routes: redirect to /login if not logged in
   if (!isLoggedIn && !isPublicRoute) {
     return NextResponse.redirect(new URL("/login", nextUrl))
   }
