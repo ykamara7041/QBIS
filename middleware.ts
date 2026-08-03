@@ -13,9 +13,17 @@ export default function middleware(req: NextRequest) {
 
   const isLoggedIn = !!sessionCookie?.value
 
-  const isApiAuthRoute = nextUrl.pathname.startsWith("/api/auth")
-  const isPublicRoute = nextUrl.pathname === "/"
-  const isAuthRoute = nextUrl.pathname === "/login" || nextUrl.pathname === "/register"
+  const pathname = nextUrl.pathname
+
+  // Profile / Account / Admin URL aliases -> redirect to /dashboard/settings
+  const profileAliases = ["/profile", "/dashboard/profile", "/account", "/dashboard/account", "/admin", "/dashboard/admin", "/user", "/dashboard/user"]
+  if (profileAliases.includes(pathname.toLowerCase())) {
+    return NextResponse.redirect(new URL("/dashboard/settings", nextUrl))
+  }
+
+  const isApiAuthRoute = pathname.startsWith("/api/auth")
+  const isPublicRoute = pathname === "/"
+  const isAuthRoute = pathname === "/login" || pathname === "/register"
 
   // Allow API auth routes and Auth pages (/login, /register) to always render directly
   if (isApiAuthRoute || isAuthRoute) {
