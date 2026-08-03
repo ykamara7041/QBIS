@@ -5,6 +5,7 @@ import { auth, signIn, signOut } from "@/../auth"
 import bcrypt from "bcryptjs"
 import { z } from "zod"
 import { AuthError } from "next-auth"
+import { cookies } from "next/headers"
 
 const registerSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -114,6 +115,11 @@ export async function loginUser(formData: FormData) {
 }
 
 export async function logoutUser() {
+  const cookieStore = await cookies()
+  cookieStore.delete("__Secure-authjs.session-token")
+  cookieStore.delete("authjs.session-token")
+  cookieStore.delete("__Secure-next-auth.session-token")
+  cookieStore.delete("next-auth.session-token")
   await signOut({ redirect: false })
   return { success: true }
 }
