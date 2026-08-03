@@ -14,6 +14,9 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { Sidebar } from "./sidebar"
 import { logoutUser } from "@/actions/auth"
 import { ThemeToggle } from "@/components/theme-toggle"
+import Link from "next/link"
+import { useState } from "react"
+import { useLanguage } from "@/components/providers/language-provider"
 
 interface TopbarProps {
   user: {
@@ -22,9 +25,6 @@ interface TopbarProps {
     image?: string | null
   }
 }
-
-import { useState } from "react"
-import { useLanguage } from "@/components/providers/language-provider"
 
 export function Topbar({ user }: TopbarProps) {
   const { t } = useLanguage()
@@ -82,13 +82,17 @@ export function Topbar({ user }: TopbarProps) {
             </div>
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
-          <DropdownMenuItem>
-            <UserIcon className="mr-2 h-4 w-4" />
-            <span>{t('topbar.my_account')}</span>
+          <DropdownMenuItem className="p-0">
+            <Link href="/dashboard/settings" className="flex w-full items-center px-2 py-1.5 text-sm">
+              <UserIcon className="mr-2 h-4 w-4" />
+              <span>{t('topbar.my_account')}</span>
+            </Link>
           </DropdownMenuItem>
-          <DropdownMenuItem>
-            <Settings className="mr-2 h-4 w-4" />
-            <span>{t('nav.settings')}</span>
+          <DropdownMenuItem className="p-0">
+            <Link href="/dashboard/settings" className="flex w-full items-center px-2 py-1.5 text-sm">
+              <Settings className="mr-2 h-4 w-4" />
+              <span>{t('nav.settings')}</span>
+            </Link>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:bg-destructive focus:text-destructive-foreground cursor-pointer">

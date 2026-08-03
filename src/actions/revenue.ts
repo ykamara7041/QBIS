@@ -22,20 +22,19 @@ export async function addRevenueTransaction(data: z.infer<typeof revenueSchema>)
 
   // Validate member access and get org ID automatically
   const member = await db.organizationMember.findFirst({
-    where: { userId: session.user.id }
+    where: { userId: session.user.id },
+    include: { organization: true }
   })
   
   if (!member) throw new Error("Unauthorized access to organization")
   
   const organizationId = member.organizationId
-
-  // Mock Currency Conversion Logic (Since we are defaulting to manual rates later)
-  // Org default is now GNF
-  const defaultCurrency = "GNF"
+  const defaultCurrency = member.organization?.defaultCurrency || "GNF"
+  
   let convertedAmount = data.originalAmount
   
   if (data.originalCurrency !== defaultCurrency) {
-    // Rates relative to GNF for Phase 4 demo
+    // Standard conversion rates relative to GNF
     const ratesToGNF: Record<string, number> = {
       "USD": 8600,
       "EUR": 9300,
@@ -43,15 +42,19 @@ export async function addRevenueTransaction(data: z.infer<typeof revenueSchema>)
       "LRD": 44,
       "GHS": 580,
       "NGN": 5.7,
-      "XOF": 14.1
+      "XOF": 14.1,
+      "GNF": 1
     }
-    const rate = ratesToGNF[data.originalCurrency]
-    if (rate) {
-      convertedAmount = data.originalAmount * rate
-    }
+
+    const sourceRateToGNF = ratesToGNF[data.originalCurrency] || 1
+    const targetRateToGNF = ratesToGNF[defaultCurrency] || 1
+
+    // Convert from original currency to GNF, then to defaultCurrency
+    const amountInGNF = data.originalAmount * sourceRateToGNF
+    convertedAmount = amountInGNF / targetRateToGNF
   }
 
-  // Insert the pending transaction
+  // Insert the transaction (APPROVED directly if added by user)
   await db.revenueTransaction.create({
     data: {
       organizationId: organizationId,
@@ -65,7 +68,7 @@ export async function addRevenueTransaction(data: z.infer<typeof revenueSchema>)
       customerName: data.customerName,
       receiptNumber: data.receiptNumber,
       agentName: data.agentName,
-      approvalStatus: "PENDING",
+      approvalStatus: "APPROVED",
       status: "COMPLETED"
     }
   })
@@ -85,9 +88,6 @@ export async function approveTransaction(transactionId: string) {
     include: { organization: true }
   })
   
-  // ==========================================
-  // [MOCK ADMIN ALERT] Send Email Notification
-  // ==========================================
   console.log(`
   -------------------------------------------------
   📧 ADMIN ALERT EMAIL DISPATCHED
