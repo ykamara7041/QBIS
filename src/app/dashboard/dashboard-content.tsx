@@ -1,8 +1,7 @@
 "use client"
 
-import { motion, Variants } from "framer-motion"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { BanknoteIcon, TargetIcon, BotIcon } from "lucide-react"
+import Link from "next/link"
+import { ArrowUpRight, Banknote, Bot, CheckCircle2, Clock3, Plus, Target } from "lucide-react"
 import { RevenueChart, RevenueDataPoint } from "@/components/dashboard/revenue-chart"
 import { TimeRangeSelector } from "@/components/dashboard/time-range-selector"
 import { formatCurrency } from "@/lib/utils"
@@ -15,128 +14,74 @@ interface DashboardContentProps {
   currency: string
 }
 
-const containerVariants: Variants = {
-  hidden: { opacity: 0 },
-  show: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.1,
-      delayChildren: 0.2
-    }
-  }
-}
-
-const itemVariants: Variants = {
-  hidden: { opacity: 0, y: 20 },
-  show: { 
-    opacity: 1, 
-    y: 0,
-    transition: { type: "spring", stiffness: 300, damping: 24 }
-  }
+function MetricCard({ label, value, note, icon: Icon, tone }: { label: string; value: string; note: string; icon: React.ElementType; tone: string }) {
+  return (
+    <article className="qbix-card p-5 transition duration-200 hover:-translate-y-0.5 hover:shadow-lg">
+      <div className="flex items-start gap-4">
+        <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl ${tone}`}><Icon className="h-5 w-5" /></div>
+        <div className="min-w-0">
+          <p className="text-sm font-medium text-muted-foreground">{label}</p>
+          <p className="mt-1.5 truncate text-2xl font-bold tracking-tight tabular-nums">{value}</p>
+          <p className="mt-1 text-xs text-muted-foreground">{note}</p>
+        </div>
+      </div>
+    </article>
+  )
 }
 
 export function DashboardContent({ userName, chartData, aiInsightsFeed, totalRevenue, currency }: DashboardContentProps) {
+  const firstName = userName.split(" ")[0]
+  const hasRevenue = totalRevenue > 0
+
   return (
-    <motion.div 
-      variants={containerVariants}
-      initial="hidden"
-      animate="show"
-      className="space-y-6"
-    >
-      <motion.div variants={itemVariants} className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <div className="space-y-5">
+      <header className="flex flex-col justify-between gap-4 xl:flex-row xl:items-end">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-          <p className="text-muted-foreground">
-            Welcome back, {userName}! Here's an overview of your organization's performance.
-          </p>
+          <p className="text-sm font-semibold text-primary">OVERVIEW</p>
+          <h1 className="mt-1 text-3xl font-bold tracking-[-0.025em]">Good morning, {firstName}</h1>
+          <p className="mt-1.5 text-muted-foreground">Here&apos;s how your organization&apos;s revenue is performing.</p>
         </div>
-        <TimeRangeSelector />
-      </motion.div>
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+          <TimeRangeSelector />
+          <Link href="/dashboard/revenue/add" className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-sm transition hover:bg-blue-700">
+            <Plus className="h-4 w-4" /> Add revenue
+          </Link>
+        </div>
+      </header>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        <motion.div variants={itemVariants} whileHover={{ y: -4, transition: { duration: 0.2 } }}>
-          <Card className="shadow-sm hover:shadow-md transition-shadow backdrop-blur-sm bg-background/95 border-primary/10">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Total Revenue
-              </CardTitle>
-              <div className="p-2 bg-primary/10 rounded-full">
-                <BanknoteIcon className="h-4 w-4 text-primary" />
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{formatCurrency(totalRevenue, currency)}</div>
-              <p className="text-xs text-muted-foreground mt-1">
-                Based on selected time range
-              </p>
-            </CardContent>
-          </Card>
-        </motion.div>
+      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <MetricCard label="Total Revenue" value={formatCurrency(totalRevenue, currency)} note={hasRevenue ? "Approved revenue in this period" : "Add your first approved transaction"} icon={Banknote} tone="bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400" />
+        <MetricCard label="Target Achievement" value={hasRevenue ? "72%" : "0%"} note="Performance against active goals" icon={Target} tone="bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400" />
+        <MetricCard label="Pending Approvals" value="0" note="Transactions awaiting review" icon={Clock3} tone="bg-amber-50 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400" />
+        <MetricCard label="AI Forecast" value={hasRevenue ? "Positive" : "Ready"} note={hasRevenue ? "Forecast based on approved revenue" : "Waiting for transaction data"} icon={Bot} tone="bg-violet-50 text-violet-600 dark:bg-violet-500/10 dark:text-violet-400" />
+      </section>
 
-        <motion.div variants={itemVariants} whileHover={{ y: -4, transition: { duration: 0.2 } }}>
-          <Card className="shadow-sm hover:shadow-md transition-shadow backdrop-blur-sm bg-background/95 border-primary/10">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Active Goals
-              </CardTitle>
-              <div className="p-2 bg-blue-500/10 rounded-full">
-                <TargetIcon className="h-4 w-4 text-blue-500" />
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">1</div>
-              <p className="text-xs text-muted-foreground mt-1">
-                0 targets reached this month
-              </p>
-            </CardContent>
-          </Card>
-        </motion.div>
+      <section className="grid gap-5 xl:grid-cols-[minmax(0,1.7fr)_minmax(320px,.75fr)]">
+        <article className="qbix-card min-w-0 p-5 sm:p-6">
+          <div className="mb-5 flex items-start justify-between gap-4">
+            <div><h2 className="font-semibold">Revenue Performance</h2><p className="mt-1 text-sm text-muted-foreground">Actual revenue compared with target</p></div>
+            <Link href="/dashboard/reports" className="hidden items-center gap-1 text-sm font-semibold text-primary sm:flex">View report <ArrowUpRight className="h-4 w-4" /></Link>
+          </div>
+          <RevenueChart data={chartData} currency={currency} />
+        </article>
 
-        <motion.div variants={itemVariants} whileHover={{ y: -4, transition: { duration: 0.2 } }}>
-          <Card className="shadow-sm hover:shadow-md transition-shadow backdrop-blur-sm bg-background/95 border-primary/10">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                AI Forecast
-              </CardTitle>
-              <div className="p-2 bg-indigo-500/10 rounded-full">
-                <BotIcon className="h-4 w-4 text-indigo-500" />
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-emerald-500">Positive</div>
-              <p className="text-xs text-muted-foreground mt-1">
-                Expected to exceed Q3 target by 5%
-              </p>
-            </CardContent>
-          </Card>
-        </motion.div>
-      </div>
+        <article className="qbix-card p-5 sm:p-6">
+          <div className="flex items-center gap-3"><div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-violet-50 text-violet-600 dark:bg-violet-500/10 dark:text-violet-300"><Bot className="h-5 w-5" /></div><div><h2 className="font-semibold">AI Insight</h2><p className="text-xs text-muted-foreground">Financial performance summary</p></div></div>
+          <div className="mt-5">{aiInsightsFeed}</div>
+        </article>
+      </section>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-        <motion.div variants={itemVariants} className="col-span-4" whileHover={{ y: -2, transition: { duration: 0.2 } }}>
-          <Card className="h-full shadow-sm hover:shadow-md transition-shadow backdrop-blur-sm bg-background/95 border-primary/5">
-            <CardHeader>
-              <CardTitle>Revenue Trends</CardTitle>
-              <CardDescription>Monthly revenue vs targets</CardDescription>
-            </CardHeader>
-            <CardContent className="pl-0">
-              <RevenueChart data={chartData} />
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        <motion.div variants={itemVariants} className="col-span-3" whileHover={{ y: -2, transition: { duration: 0.2 } }}>
-          <Card className="h-full shadow-sm hover:shadow-md transition-shadow backdrop-blur-sm bg-background/95 border-primary/5">
-            <CardHeader>
-              <CardTitle>Recent Insights</CardTitle>
-              <CardDescription>AI-generated performance analysis</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {aiInsightsFeed}
-            </CardContent>
-          </Card>
-        </motion.div>
-      </div>
-    </motion.div>
+      <section className="grid gap-5 lg:grid-cols-3">
+        <article className="qbix-card p-5 lg:col-span-2 sm:p-6">
+          <div className="flex items-center justify-between"><div><h2 className="font-semibold">Recent Transactions</h2><p className="mt-1 text-sm text-muted-foreground">Latest recorded revenue activity</p></div><Link href="/dashboard/revenue" className="text-sm font-semibold text-primary">View all</Link></div>
+          <div className="mt-6 flex min-h-32 flex-col items-center justify-center rounded-xl border border-dashed bg-muted/25 px-4 text-center">
+            <CheckCircle2 className="h-8 w-8 text-muted-foreground/50" />
+            <p className="mt-3 text-sm font-semibold">Your latest transactions will appear here</p>
+            <p className="mt-1 text-xs text-muted-foreground">Open Revenue to add or review transaction records.</p>
+          </div>
+        </article>
+        <article className="qbix-card p-5 sm:p-6"><h2 className="font-semibold">Goal Progress</h2><div className="mx-auto mt-6 flex h-36 w-36 items-center justify-center rounded-full bg-[conic-gradient(#10b981_0deg_259deg,#e2e8f0_259deg)]"><div className="flex h-28 w-28 flex-col items-center justify-center rounded-full bg-card"><strong className="text-3xl">{hasRevenue ? "72%" : "0%"}</strong><span className="text-xs text-muted-foreground">of target</span></div></div><Link href="/dashboard/targets" className="mt-6 flex justify-center text-sm font-semibold text-primary">Manage revenue targets</Link></article>
+      </section>
+    </div>
   )
 }

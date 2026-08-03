@@ -1,6 +1,5 @@
 "use client"
 
-import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,7 +9,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Menu, LogOut, Settings, User as UserIcon } from "lucide-react"
+import { Bell, ChevronDown, Menu, LogOut, Search, Settings, User as UserIcon } from "lucide-react"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { Sidebar } from "./sidebar"
 import { logoutUser } from "@/actions/auth"
@@ -42,7 +41,7 @@ export function Topbar({ user }: TopbarProps) {
   }
 
   return (
-    <header className="flex h-14 items-center gap-4 border-b bg-muted/40 px-4 lg:h-[60px] lg:px-6">
+    <header className="sticky top-0 z-30 flex h-[72px] items-center gap-4 border-b bg-card/95 px-4 backdrop-blur md:px-6">
       <Sheet open={isOpen} onOpenChange={setIsOpen}>
         <SheetTrigger className="inline-flex items-center justify-center rounded-md border border-input bg-background p-2 hover:bg-accent hover:text-accent-foreground md:hidden">
           <Menu className="h-5 w-5" />
@@ -54,17 +53,25 @@ export function Topbar({ user }: TopbarProps) {
       </Sheet>
       
       <div className="w-full flex-1">
-        {/* Placeholder for Breadcrumbs or Search */}
+        <div className="relative hidden max-w-sm md:block">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <input className="h-10 w-full rounded-xl border bg-muted/40 pl-10 pr-4 text-sm outline-none transition focus:border-primary focus:ring-4 focus:ring-primary/10" placeholder="Search transactions, reports..." aria-label="Search" />
+        </div>
       </div>
-      
+      <button className="relative rounded-xl p-2.5 text-muted-foreground transition hover:bg-muted" aria-label="Notifications">
+        <Bell className="h-[18px] w-[18px]" />
+        <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-primary ring-2 ring-card" />
+      </button>
       <ThemeToggle />
       
       <DropdownMenu>
-        <DropdownMenuTrigger className="inline-flex items-center justify-center rounded-full border border-input bg-secondary hover:bg-secondary/80 h-9 w-9">
+        <DropdownMenuTrigger className="inline-flex items-center gap-2 rounded-xl p-1.5 pr-2 transition hover:bg-muted">
           <Avatar className="h-9 w-9">
             <AvatarImage src={user.image || ""} alt={user.name || "User"} />
             <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
           </Avatar>
+          <span className="hidden max-w-28 truncate text-sm font-semibold lg:block">{user.name || "User"}</span>
+          <ChevronDown className="hidden h-4 w-4 text-muted-foreground lg:block" />
           <span className="sr-only">Toggle user menu</span>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">

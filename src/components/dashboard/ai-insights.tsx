@@ -19,19 +19,18 @@ export function AiInsightsClient({ initialInsights, dataContext }: AiInsightsCli
         const { generateFinancialInsights } = await import("@/lib/ai")
         const newInsights = await generateFinancialInsights(dataContext)
         setInsights(newInsights)
-      } catch (e) {
+      } catch {
         setInsights("Unable to refresh AI insights right now. Please try again shortly.")
       }
     })
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-start gap-4 rounded-md bg-muted/50 p-4 shadow-sm border border-border/50">
-        <BotIcon className="h-6 w-6 text-primary mt-0.5 shrink-0" />
+    <div>
+      <div className="rounded-xl border border-violet-100 bg-violet-50/70 p-4 dark:border-violet-500/15 dark:bg-violet-500/10">
         <div className="space-y-2 w-full">
-          <div className="flex items-center justify-between">
-            <p className="text-sm font-semibold leading-none">Gemini Performance Summary</p>
+          <div className="flex items-center justify-between gap-2">
+            <p className="flex items-center gap-2 text-sm font-semibold leading-none"><BotIcon className="h-4 w-4 text-violet-600" /> Performance Summary</p>
             <Button
               variant="ghost"
               size="sm"
@@ -43,7 +42,7 @@ export function AiInsightsClient({ initialInsights, dataContext }: AiInsightsCli
               {isPending ? "Analyzing..." : "Refresh AI"}
             </Button>
           </div>
-          <div className="text-sm text-muted-foreground whitespace-pre-wrap leading-relaxed">
+          <div className="mt-3 whitespace-pre-wrap text-sm leading-6 text-muted-foreground">
             {insights}
           </div>
         </div>

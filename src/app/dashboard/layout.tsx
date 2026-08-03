@@ -25,13 +25,13 @@ export default async function DashboardLayout({
 
   return (
     <LanguageProvider initialLanguage={userLanguage}>
-      <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
-        <div className="hidden md:block">
+      <div className="min-h-screen w-full bg-background md:grid md:grid-cols-[248px_minmax(0,1fr)]">
+        <div className="hidden min-h-screen md:block">
           <Sidebar />
         </div>
-        <div className="flex flex-col flex-1 overflow-hidden">
+        <div className="flex min-w-0 flex-1 flex-col">
           <Topbar user={session.user} />
-          <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6 overflow-y-auto">
+          <main className="mx-auto flex w-full max-w-[1600px] flex-1 flex-col gap-5 p-4 md:p-6 xl:p-8">
             {children}
           </main>
         </div>

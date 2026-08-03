@@ -1,0 +1,872 @@
+diff --git a/src/app/(auth)/login/login-form.tsx b/src/app/(auth)/login/login-form.tsx
+index d185620..5364923 100644
+--- a/src/app/(auth)/login/login-form.tsx
++++ b/src/app/(auth)/login/login-form.tsx
+@@ -1,12 +1,11 @@
+ "use client"
+ 
+ import * as React from "react"
+-import { useActionState } from "react"
+ import { loginUser } from "@/actions/auth"
+ import { Button } from "@/components/ui/button"
+ import { Input } from "@/components/ui/input"
+ import { Label } from "@/components/ui/label"
+-import { Loader2, Eye, EyeOff } from "lucide-react"
++import { AlertCircle, Eye, EyeOff, Loader2, LockKeyhole, Mail } from "lucide-react"
+ import Link from "next/link"
+ 
+ export default function LoginForm() {
+@@ -31,32 +30,37 @@ export default function LoginForm() {
+ 
+   return (
+     <div className="space-y-6">
+-      <form onSubmit={handleSubmit} className="space-y-6">
++      <form onSubmit={handleSubmit} className="space-y-5">
+         {error && (
+-          <div className="rounded-md bg-destructive/15 p-3 text-sm text-destructive">
+-            {error}
++          <div className="flex items-start gap-2 rounded-xl border border-destructive/20 bg-destructive/10 p-3 text-sm text-destructive" role="alert">
++            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" /> {error}
+           </div>
+         )}
+         
+-        <div className="space-y-4">
++        <div className="space-y-5">
+           <div className="space-y-2">
+-            <Label htmlFor="email">Email</Label>
+-            <Input id="email" name="email" type="email" placeholder="name@example.com" required />
++            <Label htmlFor="email" className="font-semibold">Email address</Label>
++            <div className="relative">
++              <Mail className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
++              <Input id="email" name="email" type="email" placeholder="name@company.com" autoComplete="email" className="h-12 rounded-xl bg-card pl-10" required />
++            </div>
+           </div>
+ 
+           <div className="space-y-2">
+             <div className="flex items-center justify-between">
+               <Label htmlFor="password">Password</Label>
+-              <Link href="#" className="text-sm font-medium text-primary hover:underline">
++              <Link href="#" className="text-sm font-semibold text-primary hover:underline">
+                 Forgot password?
+               </Link>
+             </div>
+             <div className="relative">
+-              <Input id="password" name="password" type={showPassword ? "text" : "password"} required />
++              <LockKeyhole className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
++              <Input id="password" name="password" type={showPassword ? "text" : "password"} placeholder="Enter your password" autoComplete="current-password" className="h-12 rounded-xl bg-card pl-10 pr-11" required />
+               <button
+                 type="button"
+                 onClick={() => setShowPassword(!showPassword)}
+-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
++                className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
++                aria-label={showPassword ? "Hide password" : "Show password"}
+               >
+                 {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+               </button>
+@@ -64,20 +68,25 @@ export default function LoginForm() {
+           </div>
+         </div>
+ 
+-        <Button type="submit" className="w-full" disabled={isPending}>
++        <div className="flex items-center gap-2 text-sm text-muted-foreground">
++          <input id="remember" name="remember" type="checkbox" className="h-4 w-4 rounded border-input accent-blue-600" />
++          <Label htmlFor="remember" className="font-normal">Remember me</Label>
++        </div>
++
++        <Button type="submit" size="lg" className="h-12 w-full rounded-xl bg-blue-600 font-semibold text-white shadow-sm hover:bg-blue-700" disabled={isPending}>
+           {isPending ? (
+             <>
+               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+               Signing in...
+             </>
+           ) : (
+-            "Sign in with Email"
++            "Sign in"
+           )}
+         </Button>
+       </form>
+ 
+       <div className="text-center text-sm">
+-        Don't have an account?{" "}
++        Don&apos;t have an account?{" "}
+         <Link href="/register" className="font-medium text-primary hover:underline">
+           Sign up
+         </Link>
+diff --git a/src/app/(auth)/login/page.tsx b/src/app/(auth)/login/page.tsx
+index 9d020d2..ecc538a 100644
+--- a/src/app/(auth)/login/page.tsx
++++ b/src/app/(auth)/login/page.tsx
+@@ -1,59 +1,70 @@
+-import LoginForm from "./login-form"
+ import Link from "next/link"
++import Image from "next/image"
++import { BarChart3, CheckCircle2, ShieldCheck, Sparkles, WalletCards } from "lucide-react"
+ import { ThemeToggle } from "@/components/theme-toggle"
++import LoginForm from "./login-form"
+ 
+ export const dynamic = "force-dynamic"
+ 
+ export default function LoginPage() {
+   return (
+-    <div className="flex min-h-screen">
+-      {/* Desktop Brand Panel */}
+-      <div className="hidden lg:flex w-1/2 flex-col justify-between bg-zinc-950 p-12 text-white">
+-        <Link href="/" className="inline-block transition-transform duration-300 hover:scale-[1.02]">
+-          <img
+-            src="/logo.png"
+-            alt="Qbix Logo"
+-            className="h-56 lg:h-64 xl:h-72 w-auto object-contain max-w-full drop-shadow-[0_12px_30px_rgba(0,0,0,0.6)]"
+-          />
++    <main className="grid min-h-screen bg-background lg:grid-cols-[1.02fr_1fr]">
++      <section className="relative hidden overflow-hidden bg-[#071a3d] px-10 py-9 text-white lg:flex lg:flex-col lg:justify-between xl:px-16 xl:py-12">
++        <div className="absolute inset-0 opacity-25 [background-image:linear-gradient(rgba(59,130,246,.15)_1px,transparent_1px),linear-gradient(90deg,rgba(59,130,246,.15)_1px,transparent_1px)] [background-size:48px_48px] [mask-image:linear-gradient(to_bottom_right,black,transparent_70%)]" />
++        <div className="absolute -bottom-48 -right-32 h-[520px] w-[520px] rounded-full bg-blue-600/20 blur-3xl" />
++
++        <Link href="/" className="relative z-10 w-fit" aria-label="QBIX home">
++          <Image src="/logo.png" alt="QBIX" width={240} height={160} priority className="h-16 w-auto object-contain brightness-0 invert" />
+         </Link>
+-        <div className="space-y-6">
+-          <h1 className="text-4xl lg:text-5xl font-medium tracking-tight">Track. Analyze. Grow.</h1>
+-          <p className="text-lg text-zinc-400 max-w-md">
+-            Welcome back to the intelligent revenue tracking platform designed for modern organizations.
++
++        <div className="relative z-10 my-12 max-w-2xl">
++          <p className="mb-4 text-sm font-semibold uppercase tracking-[0.18em] text-blue-300">Revenue intelligence for modern teams</p>
++          <h1 className="max-w-xl text-5xl font-bold leading-[1.08] tracking-[-0.035em] xl:text-6xl">
++            Track revenue.<br />Reach <span className="text-blue-400">every goal.</span>
++          </h1>
++          <p className="mt-6 max-w-lg text-lg leading-8 text-slate-300">
++            Monitor performance, manage approvals, and turn financial data into confident decisions.
+           </p>
+-        </div>
+-        <div className="text-sm text-zinc-500">
+-          © {new Date().getFullYear()} QBIX RevenueTrack AI. All rights reserved.
+-        </div>
+-      </div>
+ 
+-      {/* Main Form & Mobile View */}
+-      <div className="relative flex w-full lg:w-1/2 flex-col items-center justify-center p-6 sm:p-12 bg-background">
+-        <div className="absolute top-4 right-4 md:top-8 md:right-8">
+-          <ThemeToggle />
+-        </div>
++          <div className="mt-8 grid max-w-xl grid-cols-3 gap-3 text-sm text-slate-200">
++            <div className="flex items-center gap-2"><WalletCards className="h-5 w-5 text-blue-300" /> Multi-currency</div>
++            <div className="flex items-center gap-2"><ShieldCheck className="h-5 w-5 text-blue-300" /> Secure approvals</div>
++            <div className="flex items-center gap-2"><Sparkles className="h-5 w-5 text-blue-300" /> AI insights</div>
++          </div>
+ 
+-        <div className="w-full max-w-sm space-y-8">
+-          {/* Mobile Logo View (Hidden on Desktop) */}
+-          <div className="flex lg:hidden justify-center pb-2">
+-            <Link href="/">
+-              <img
+-                src="/logo.png"
+-                alt="Qbix Logo"
+-                className="h-32 sm:h-40 w-auto object-contain max-w-full drop-shadow-md"
+-              />
+-            </Link>
++          <div className="mt-10 rounded-2xl border border-white/15 bg-white/[0.07] p-5 shadow-2xl backdrop-blur-sm">
++            <div className="flex items-center justify-between">
++              <div><p className="text-sm font-medium text-slate-300">Revenue overview</p><p className="mt-2 text-3xl font-bold">GNF 24.59M</p></div>
++              <div className="rounded-full bg-emerald-400/10 px-3 py-1.5 text-xs font-semibold text-emerald-300">+18.7% this month</div>
++            </div>
++            <div className="mt-7 flex h-24 items-end gap-2" aria-hidden="true">
++              {[34, 43, 39, 55, 51, 68, 64, 79, 73, 91].map((height, index) => (
++                <div key={index} className="flex-1 rounded-t-md bg-blue-400/80" style={{ height: `${height}%`, opacity: .45 + index * .05 }} />
++              ))}
++            </div>
+           </div>
++        </div>
+ 
+-          <div className="space-y-2 text-center lg:text-left">
+-            <h2 className="text-3xl font-bold tracking-tight">Sign in</h2>
+-            <p className="text-muted-foreground">
+-              Enter your email below to log into your account
+-            </p>
++        <p className="relative z-10 text-xs text-slate-400">© {new Date().getFullYear()} QBIX RevenueTrack AI. All rights reserved.</p>
++      </section>
++
++      <section className="relative flex min-h-screen items-center justify-center px-5 py-16 sm:px-10">
++        <div className="absolute right-5 top-5 sm:right-8 sm:top-8"><ThemeToggle /></div>
++        <div className="w-full max-w-[460px]">
++          <Link href="/" className="mb-9 flex justify-center lg:hidden"><Image src="/logo.png" alt="QBIX" width={240} height={160} priority className="h-20 w-auto object-contain" /></Link>
++          <div className="qbix-card bg-card p-6 sm:p-9">
++            <div className="text-center">
++              <div className="mx-auto mb-5 flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary"><BarChart3 className="h-6 w-6" /></div>
++              <h2 className="text-3xl font-bold tracking-tight">Welcome back</h2>
++              <p className="mt-2 text-sm text-muted-foreground">Sign in to continue to your QBIX workspace.</p>
++            </div>
++            <div className="mt-8"><LoginForm /></div>
++          </div>
++          <div className="mt-6 flex items-center justify-center gap-2 text-xs text-muted-foreground">
++            <CheckCircle2 className="h-4 w-4 text-primary" /> Your financial data is protected
+           </div>
+-          <LoginForm />
+         </div>
+-      </div>
+-    </div>
++      </section>
++    </main>
+   )
+ }
+diff --git a/src/app/dashboard/dashboard-content.tsx b/src/app/dashboard/dashboard-content.tsx
+index e2407ec..86791a0 100644
+--- a/src/app/dashboard/dashboard-content.tsx
++++ b/src/app/dashboard/dashboard-content.tsx
+@@ -1,8 +1,7 @@
+ "use client"
+ 
+-import { motion, Variants } from "framer-motion"
+-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+-import { BanknoteIcon, TargetIcon, BotIcon } from "lucide-react"
++import Link from "next/link"
++import { ArrowUpRight, Banknote, Bot, CheckCircle2, Clock3, Plus, Target } from "lucide-react"
+ import { RevenueChart, RevenueDataPoint } from "@/components/dashboard/revenue-chart"
+ import { TimeRangeSelector } from "@/components/dashboard/time-range-selector"
+ import { formatCurrency } from "@/lib/utils"
+@@ -15,128 +14,74 @@ interface DashboardContentProps {
+   currency: string
+ }
+ 
+-const containerVariants: Variants = {
+-  hidden: { opacity: 0 },
+-  show: {
+-    opacity: 1,
+-    transition: {
+-      staggerChildren: 0.1,
+-      delayChildren: 0.2
+-    }
+-  }
+-}
+-
+-const itemVariants: Variants = {
+-  hidden: { opacity: 0, y: 20 },
+-  show: { 
+-    opacity: 1, 
+-    y: 0,
+-    transition: { type: "spring", stiffness: 300, damping: 24 }
+-  }
++function MetricCard({ label, value, note, icon: Icon, tone }: { label: string; value: string; note: string; icon: React.ElementType; tone: string }) {
++  return (
++    <article className="qbix-card p-5 transition duration-200 hover:-translate-y-0.5 hover:shadow-lg">
++      <div className="flex items-start gap-4">
++        <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl ${tone}`}><Icon className="h-5 w-5" /></div>
++        <div className="min-w-0">
++          <p className="text-sm font-medium text-muted-foreground">{label}</p>
++          <p className="mt-1.5 truncate text-2xl font-bold tracking-tight tabular-nums">{value}</p>
++          <p className="mt-1 text-xs text-muted-foreground">{note}</p>
++        </div>
++      </div>
++    </article>
++  )
+ }
+ 
+ export function DashboardContent({ userName, chartData, aiInsightsFeed, totalRevenue, currency }: DashboardContentProps) {
++  const firstName = userName.split(" ")[0]
++  const hasRevenue = totalRevenue > 0
++
+   return (
+-    <motion.div 
+-      variants={containerVariants}
+-      initial="hidden"
+-      animate="show"
+-      className="space-y-6"
+-    >
+-      <motion.div variants={itemVariants} className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
++    <div className="space-y-5">
++      <header className="flex flex-col justify-between gap-4 xl:flex-row xl:items-end">
+         <div>
+-          <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+-          <p className="text-muted-foreground">
+-            Welcome back, {userName}! Here's an overview of your organization's performance.
+-          </p>
++          <p className="text-sm font-semibold text-primary">OVERVIEW</p>
++          <h1 className="mt-1 text-3xl font-bold tracking-[-0.025em]">Good morning, {firstName}</h1>
++          <p className="mt-1.5 text-muted-foreground">Here&apos;s how your organization&apos;s revenue is performing.</p>
++        </div>
++        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
++          <TimeRangeSelector />
++          <Link href="/dashboard/revenue/add" className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-sm transition hover:bg-blue-700">
++            <Plus className="h-4 w-4" /> Add revenue
++          </Link>
+         </div>
+-        <TimeRangeSelector />
+-      </motion.div>
++      </header>
+ 
+-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+-        <motion.div variants={itemVariants} whileHover={{ y: -4, transition: { duration: 0.2 } }}>
+-          <Card className="shadow-sm hover:shadow-md transition-shadow backdrop-blur-sm bg-background/95 border-primary/10">
+-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+-              <CardTitle className="text-sm font-medium">
+-                Total Revenue
+-              </CardTitle>
+-              <div className="p-2 bg-primary/10 rounded-full">
+-                <BanknoteIcon className="h-4 w-4 text-primary" />
+-              </div>
+-            </CardHeader>
+-            <CardContent>
+-              <div className="text-2xl font-bold">{formatCurrency(totalRevenue, currency)}</div>
+-              <p className="text-xs text-muted-foreground mt-1">
+-                Based on selected time range
+-              </p>
+-            </CardContent>
+-          </Card>
+-        </motion.div>
++      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
++        <MetricCard label="Total Revenue" value={formatCurrency(totalRevenue, currency)} note={hasRevenue ? "Approved revenue in this period" : "Add your first approved transaction"} icon={Banknote} tone="bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400" />
++        <MetricCard label="Target Achievement" value={hasRevenue ? "72%" : "0%"} note="Performance against active goals" icon={Target} tone="bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400" />
++        <MetricCard label="Pending Approvals" value="0" note="Transactions awaiting review" icon={Clock3} tone="bg-amber-50 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400" />
++        <MetricCard label="AI Forecast" value={hasRevenue ? "Positive" : "Ready"} note={hasRevenue ? "Forecast based on approved revenue" : "Waiting for transaction data"} icon={Bot} tone="bg-violet-50 text-violet-600 dark:bg-violet-500/10 dark:text-violet-400" />
++      </section>
+ 
+-        <motion.div variants={itemVariants} whileHover={{ y: -4, transition: { duration: 0.2 } }}>
+-          <Card className="shadow-sm hover:shadow-md transition-shadow backdrop-blur-sm bg-background/95 border-primary/10">
+-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+-              <CardTitle className="text-sm font-medium">
+-                Active Goals
+-              </CardTitle>
+-              <div className="p-2 bg-blue-500/10 rounded-full">
+-                <TargetIcon className="h-4 w-4 text-blue-500" />
+-              </div>
+-            </CardHeader>
+-            <CardContent>
+-              <div className="text-2xl font-bold">1</div>
+-              <p className="text-xs text-muted-foreground mt-1">
+-                0 targets reached this month
+-              </p>
+-            </CardContent>
+-          </Card>
+-        </motion.div>
++      <section className="grid gap-5 xl:grid-cols-[minmax(0,1.7fr)_minmax(320px,.75fr)]">
++        <article className="qbix-card min-w-0 p-5 sm:p-6">
++          <div className="mb-5 flex items-start justify-between gap-4">
++            <div><h2 className="font-semibold">Revenue Performance</h2><p className="mt-1 text-sm text-muted-foreground">Actual revenue compared with target</p></div>
++            <Link href="/dashboard/reports" className="hidden items-center gap-1 text-sm font-semibold text-primary sm:flex">View report <ArrowUpRight className="h-4 w-4" /></Link>
++          </div>
++          <RevenueChart data={chartData} currency={currency} />
++        </article>
+ 
+-        <motion.div variants={itemVariants} whileHover={{ y: -4, transition: { duration: 0.2 } }}>
+-          <Card className="shadow-sm hover:shadow-md transition-shadow backdrop-blur-sm bg-background/95 border-primary/10">
+-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+-              <CardTitle className="text-sm font-medium">
+-                AI Forecast
+-              </CardTitle>
+-              <div className="p-2 bg-indigo-500/10 rounded-full">
+-                <BotIcon className="h-4 w-4 text-indigo-500" />
+-              </div>
+-            </CardHeader>
+-            <CardContent>
+-              <div className="text-2xl font-bold text-emerald-500">Positive</div>
+-              <p className="text-xs text-muted-foreground mt-1">
+-                Expected to exceed Q3 target by 5%
+-              </p>
+-            </CardContent>
+-          </Card>
+-        </motion.div>
+-      </div>
++        <article className="qbix-card p-5 sm:p-6">
++          <div className="flex items-center gap-3"><div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-violet-50 text-violet-600 dark:bg-violet-500/10 dark:text-violet-300"><Bot className="h-5 w-5" /></div><div><h2 className="font-semibold">AI Insight</h2><p className="text-xs text-muted-foreground">Financial performance summary</p></div></div>
++          <div className="mt-5">{aiInsightsFeed}</div>
++        </article>
++      </section>
+ 
+-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
+-        <motion.div variants={itemVariants} className="col-span-4" whileHover={{ y: -2, transition: { duration: 0.2 } }}>
+-          <Card className="h-full shadow-sm hover:shadow-md transition-shadow backdrop-blur-sm bg-background/95 border-primary/5">
+-            <CardHeader>
+-              <CardTitle>Revenue Trends</CardTitle>
+-              <CardDescription>Monthly revenue vs targets</CardDescription>
+-            </CardHeader>
+-            <CardContent className="pl-0">
+-              <RevenueChart data={chartData} />
+-            </CardContent>
+-          </Card>
+-        </motion.div>
+-
+-        <motion.div variants={itemVariants} className="col-span-3" whileHover={{ y: -2, transition: { duration: 0.2 } }}>
+-          <Card className="h-full shadow-sm hover:shadow-md transition-shadow backdrop-blur-sm bg-background/95 border-primary/5">
+-            <CardHeader>
+-              <CardTitle>Recent Insights</CardTitle>
+-              <CardDescription>AI-generated performance analysis</CardDescription>
+-            </CardHeader>
+-            <CardContent>
+-              {aiInsightsFeed}
+-            </CardContent>
+-          </Card>
+-        </motion.div>
+-      </div>
+-    </motion.div>
++      <section className="grid gap-5 lg:grid-cols-3">
++        <article className="qbix-card p-5 lg:col-span-2 sm:p-6">
++          <div className="flex items-center justify-between"><div><h2 className="font-semibold">Recent Transactions</h2><p className="mt-1 text-sm text-muted-foreground">Latest recorded revenue activity</p></div><Link href="/dashboard/revenue" className="text-sm font-semibold text-primary">View all</Link></div>
++          <div className="mt-6 flex min-h-32 flex-col items-center justify-center rounded-xl border border-dashed bg-muted/25 px-4 text-center">
++            <CheckCircle2 className="h-8 w-8 text-muted-foreground/50" />
++            <p className="mt-3 text-sm font-semibold">Your latest transactions will appear here</p>
++            <p className="mt-1 text-xs text-muted-foreground">Open Revenue to add or review transaction records.</p>
++          </div>
++        </article>
++        <article className="qbix-card p-5 sm:p-6"><h2 className="font-semibold">Goal Progress</h2><div className="mx-auto mt-6 flex h-36 w-36 items-center justify-center rounded-full bg-[conic-gradient(#10b981_0deg_259deg,#e2e8f0_259deg)]"><div className="flex h-28 w-28 flex-col items-center justify-center rounded-full bg-card"><strong className="text-3xl">{hasRevenue ? "72%" : "0%"}</strong><span className="text-xs text-muted-foreground">of target</span></div></div><Link href="/dashboard/targets" className="mt-6 flex justify-center text-sm font-semibold text-primary">Manage revenue targets</Link></article>
++      </section>
++    </div>
+   )
+ }
+diff --git a/src/app/dashboard/layout.tsx b/src/app/dashboard/layout.tsx
+index eecd8db..b421cde 100644
+--- a/src/app/dashboard/layout.tsx
++++ b/src/app/dashboard/layout.tsx
+@@ -25,13 +25,13 @@ export default async function DashboardLayout({
+ 
+   return (
+     <LanguageProvider initialLanguage={userLanguage}>
+-      <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
+-        <div className="hidden md:block">
++      <div className="min-h-screen w-full bg-background md:grid md:grid-cols-[248px_minmax(0,1fr)]">
++        <div className="hidden min-h-screen md:block">
+           <Sidebar />
+         </div>
+-        <div className="flex flex-col flex-1 overflow-hidden">
++        <div className="flex min-w-0 flex-1 flex-col">
+           <Topbar user={session.user} />
+-          <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6 overflow-y-auto">
++          <main className="mx-auto flex w-full max-w-[1600px] flex-1 flex-col gap-5 p-4 md:p-6 xl:p-8">
+             {children}
+           </main>
+         </div>
+diff --git a/src/app/globals.css b/src/app/globals.css
+index c56032b..67c95b3 100644
+--- a/src/app/globals.css
++++ b/src/app/globals.css
+@@ -49,59 +49,59 @@
+ }
+ 
+ :root {
+-  --background: oklch(1 0 0);
+-  --foreground: oklch(0.145 0 0);
++  --background: #f6f8fc;
++  --foreground: #0f172a;
+   --card: oklch(1 0 0);
+   --card-foreground: oklch(0.145 0 0);
+   --popover: oklch(1 0 0);
+   --popover-foreground: oklch(0.145 0 0);
+-  --primary: oklch(0.205 0 0);
+-  --primary-foreground: oklch(0.985 0 0);
++  --primary: #2563eb;
++  --primary-foreground: #ffffff;
+   --secondary: oklch(0.97 0 0);
+   --secondary-foreground: oklch(0.205 0 0);
+-  --muted: oklch(0.97 0 0);
+-  --muted-foreground: oklch(0.556 0 0);
++  --muted: #f1f5f9;
++  --muted-foreground: #64748b;
+   --accent: oklch(0.97 0 0);
+   --accent-foreground: oklch(0.205 0 0);
+   --destructive: oklch(0.577 0.245 27.325);
+-  --border: oklch(0.922 0 0);
+-  --input: oklch(0.922 0 0);
+-  --ring: oklch(0.708 0 0);
++  --border: #e2e8f0;
++  --input: #dbe3ef;
++  --ring: #2563eb;
+   --chart-1: oklch(0.87 0 0);
+   --chart-2: oklch(0.556 0 0);
+   --chart-3: oklch(0.439 0 0);
+   --chart-4: oklch(0.371 0 0);
+   --chart-5: oklch(0.269 0 0);
+-  --radius: 0.625rem;
+-  --sidebar: oklch(0.985 0 0);
+-  --sidebar-foreground: oklch(0.145 0 0);
+-  --sidebar-primary: oklch(0.205 0 0);
+-  --sidebar-primary-foreground: oklch(0.985 0 0);
+-  --sidebar-accent: oklch(0.97 0 0);
+-  --sidebar-accent-foreground: oklch(0.205 0 0);
+-  --sidebar-border: oklch(0.922 0 0);
+-  --sidebar-ring: oklch(0.708 0 0);
++  --radius: 0.75rem;
++  --sidebar: #ffffff;
++  --sidebar-foreground: #334155;
++  --sidebar-primary: #2563eb;
++  --sidebar-primary-foreground: #ffffff;
++  --sidebar-accent: #eff6ff;
++  --sidebar-accent-foreground: #1d4ed8;
++  --sidebar-border: #e2e8f0;
++  --sidebar-ring: #2563eb;
+ }
+ 
+ .dark {
+-  --background: oklch(0.145 0 0);
+-  --foreground: oklch(0.985 0 0);
+-  --card: oklch(0.205 0 0);
+-  --card-foreground: oklch(0.985 0 0);
++  --background: #090e1a;
++  --foreground: #f8fafc;
++  --card: #111a2b;
++  --card-foreground: #f8fafc;
+   --popover: oklch(0.205 0 0);
+   --popover-foreground: oklch(0.985 0 0);
+-  --primary: oklch(0.922 0 0);
+-  --primary-foreground: oklch(0.205 0 0);
++  --primary: #3b82f6;
++  --primary-foreground: #ffffff;
+   --secondary: oklch(0.269 0 0);
+   --secondary-foreground: oklch(0.985 0 0);
+-  --muted: oklch(0.269 0 0);
+-  --muted-foreground: oklch(0.708 0 0);
++  --muted: #162033;
++  --muted-foreground: #94a3b8;
+   --accent: oklch(0.269 0 0);
+   --accent-foreground: oklch(0.985 0 0);
+   --destructive: oklch(0.704 0.191 22.216);
+-  --border: oklch(1 0 0 / 10%);
+-  --input: oklch(1 0 0 / 15%);
+-  --ring: oklch(0.556 0 0);
++  --border: rgb(148 163 184 / 16%);
++  --input: rgb(148 163 184 / 22%);
++  --ring: #60a5fa;
+   --chart-1: oklch(0.87 0 0);
+   --chart-2: oklch(0.556 0 0);
+   --chart-3: oklch(0.439 0 0);
+@@ -123,8 +123,33 @@
+   }
+   body {
+     @apply bg-background text-foreground;
++    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+   }
+   html {
+     @apply font-sans;
+   }
+-}
+\ No newline at end of file
++}
++
++@layer utilities {
++  .qbix-card {
++    @apply rounded-2xl border bg-card shadow-[0_1px_2px_rgba(15,23,42,0.03),0_8px_24px_rgba(15,23,42,0.04)];
++  }
++}
++
++input:-webkit-autofill,
++input:-webkit-autofill:hover,
++input:-webkit-autofill:focus {
++  -webkit-text-fill-color: #0f172a;
++  -webkit-box-shadow: 0 0 0 1000px #ffffff inset;
++  box-shadow: 0 0 0 1000px #ffffff inset;
++  caret-color: #0f172a;
++}
++
++.dark input:-webkit-autofill,
++.dark input:-webkit-autofill:hover,
++.dark input:-webkit-autofill:focus {
++  -webkit-text-fill-color: #f8fafc;
++  -webkit-box-shadow: 0 0 0 1000px #111a2b inset;
++  box-shadow: 0 0 0 1000px #111a2b inset;
++  caret-color: #f8fafc;
++}
+diff --git a/src/app/layout.tsx b/src/app/layout.tsx
+index dcc0719..ddde62f 100644
+--- a/src/app/layout.tsx
++++ b/src/app/layout.tsx
+@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
+ });
+ 
+ export const metadata: Metadata = {
+-  title: "Create Next App",
+-  description: "Generated by create next app",
++  title: "QBIX RevenueTrack AI",
++  description: "Track revenue, manage goals, and turn financial data into confident decisions.",
+ };
+ 
+ export default function RootLayout({
+@@ -30,7 +30,7 @@ export default function RootLayout({
+       <body className="min-h-full flex flex-col">
+         <ThemeProvider
+           attribute="class"
+-          defaultTheme="dark"
++          defaultTheme="light"
+           enableSystem={false}
+           disableTransitionOnChange
+         >
+diff --git a/src/components/dashboard/ai-insights.tsx b/src/components/dashboard/ai-insights.tsx
+index 2fd2bca..3f54a56 100644
+--- a/src/components/dashboard/ai-insights.tsx
++++ b/src/components/dashboard/ai-insights.tsx
+@@ -19,19 +19,18 @@ export function AiInsightsClient({ initialInsights, dataContext }: AiInsightsCli
+         const { generateFinancialInsights } = await import("@/lib/ai")
+         const newInsights = await generateFinancialInsights(dataContext)
+         setInsights(newInsights)
+-      } catch (e) {
++      } catch {
+         setInsights("Unable to refresh AI insights right now. Please try again shortly.")
+       }
+     })
+   }
+ 
+   return (
+-    <div className="space-y-4">
+-      <div className="flex items-start gap-4 rounded-md bg-muted/50 p-4 shadow-sm border border-border/50">
+-        <BotIcon className="h-6 w-6 text-primary mt-0.5 shrink-0" />
++    <div>
++      <div className="rounded-xl border border-violet-100 bg-violet-50/70 p-4 dark:border-violet-500/15 dark:bg-violet-500/10">
+         <div className="space-y-2 w-full">
+-          <div className="flex items-center justify-between">
+-            <p className="text-sm font-semibold leading-none">Gemini Performance Summary</p>
++          <div className="flex items-center justify-between gap-2">
++            <p className="flex items-center gap-2 text-sm font-semibold leading-none"><BotIcon className="h-4 w-4 text-violet-600" /> Performance Summary</p>
+             <Button
+               variant="ghost"
+               size="sm"
+@@ -43,7 +42,7 @@ export function AiInsightsClient({ initialInsights, dataContext }: AiInsightsCli
+               {isPending ? "Analyzing..." : "Refresh AI"}
+             </Button>
+           </div>
+-          <div className="text-sm text-muted-foreground whitespace-pre-wrap leading-relaxed">
++          <div className="mt-3 whitespace-pre-wrap text-sm leading-6 text-muted-foreground">
+             {insights}
+           </div>
+         </div>
+diff --git a/src/components/dashboard/revenue-chart.tsx b/src/components/dashboard/revenue-chart.tsx
+index 9b09bdb..e06d90e 100644
+--- a/src/components/dashboard/revenue-chart.tsx
++++ b/src/components/dashboard/revenue-chart.tsx
+@@ -1,80 +1,35 @@
+ "use client"
+ 
+-import {
+-  Bar,
+-  BarChart,
+-  ResponsiveContainer,
+-  XAxis,
+-  YAxis,
+-  Tooltip,
+-  Legend,
+-  CartesianGrid
+-} from "recharts"
++import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
++import { BarChart3Icon, Plus } from "lucide-react"
++import Link from "next/link"
++import { formatCurrency } from "@/lib/utils"
+ 
+-export interface RevenueDataPoint {
+-  month: string
+-  revenue: number
+-  target: number
+-}
+-
+-interface RevenueChartProps {
+-  data: RevenueDataPoint[]
+-}
+-
+-import { BarChart3Icon } from "lucide-react"
++export interface RevenueDataPoint { month: string; revenue: number; target: number }
+ 
+-export function RevenueChart({ data }: RevenueChartProps) {
+-  // Check if there is no real data
++export function RevenueChart({ data, currency = "USD" }: { data: RevenueDataPoint[]; currency?: string }) {
+   const isEmpty = data.length === 0 || (data.length === 1 && data[0].month === "No Data")
+-
+-  if (isEmpty) {
+-    return (
+-      <div className="flex flex-col items-center justify-center h-[350px] text-muted-foreground w-full bg-muted/10 rounded-lg border border-dashed border-border/50">
+-        <BarChart3Icon className="h-10 w-10 mb-2 text-muted-foreground/50" />
+-        <p className="text-sm font-medium">No revenue data found</p>
+-        <p className="text-xs text-muted-foreground mt-1">There are no approved transactions in this time range.</p>
+-      </div>
+-    )
+-  }
+-
++  if (isEmpty) return (
++    <div className="flex h-[320px] flex-col items-center justify-center rounded-xl border border-dashed bg-muted/20 px-6 text-center">
++      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-50 text-blue-600 dark:bg-blue-500/10"><BarChart3Icon className="h-6 w-6" /></div>
++      <p className="mt-4 text-sm font-semibold">No revenue data yet</p><p className="mt-1 max-w-sm text-xs leading-5 text-muted-foreground">Add and approve your first transaction to begin tracking performance.</p>
++      <Link href="/dashboard/revenue/add" className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-primary"><Plus className="h-4 w-4" /> Add revenue</Link>
++    </div>
++  )
++  const compact = (value: number) => new Intl.NumberFormat("en", { notation: "compact", maximumFractionDigits: 1 }).format(value)
+   return (
+-    <ResponsiveContainer width="100%" height={350}>
+-      <BarChart data={data} margin={{ top: 20, right: 0, left: -20, bottom: 0 }}>
+-        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--muted-foreground)/0.2)" />
+-        <XAxis
+-          dataKey="month"
+-          stroke="#888888"
+-          fontSize={12}
+-          tickLine={false}
+-          axisLine={false}
+-        />
+-        <YAxis
+-          stroke="#888888"
+-          fontSize={12}
+-          tickLine={false}
+-          axisLine={false}
+-          tickFormatter={(value) => `$${value / 1000}k`}
+-        />
+-        <Tooltip 
+-          formatter={(value: any) => [`$${Number(value || 0).toLocaleString()}`, undefined]}
+-          contentStyle={{ backgroundColor: 'hsl(var(--background))', borderColor: 'hsl(var(--border))', borderRadius: '8px' }}
+-        />
+-        <Legend />
+-        <Bar
+-          dataKey="revenue"
+-          name="Actual Revenue"
+-          fill="currentColor"
+-          radius={[4, 4, 0, 0]}
+-          className="fill-primary"
+-        />
+-        <Bar
+-          dataKey="target"
+-          name="Target Revenue"
+-          fill="currentColor"
+-          radius={[4, 4, 0, 0]}
+-          className="fill-muted-foreground/30"
+-        />
+-      </BarChart>
+-    </ResponsiveContainer>
++    <div className="h-[320px] w-full">
++      <ResponsiveContainer width="100%" height="100%">
++        <AreaChart data={data} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
++          <defs><linearGradient id="revenue-fill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#2563eb" stopOpacity={0.24}/><stop offset="100%" stopColor="#2563eb" stopOpacity={0}/></linearGradient></defs>
++          <CartesianGrid vertical={false} stroke="#cbd5e1" strokeOpacity={0.45} strokeDasharray="4 5" />
++          <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fill: "#64748b", fontSize: 12 }} dy={8} />
++          <YAxis axisLine={false} tickLine={false} tick={{ fill: "#64748b", fontSize: 12 }} tickFormatter={compact} />
++          <Tooltip formatter={(value) => formatCurrency(Number(value || 0), currency)} contentStyle={{ borderRadius: 12, border: "1px solid #e2e8f0", boxShadow: "0 12px 30px rgba(15,23,42,.10)" }} />
++          <Area type="monotone" dataKey="target" name="Target" stroke="#7c3aed" strokeWidth={2} strokeDasharray="6 5" fill="transparent" dot={false} />
++          <Area type="monotone" dataKey="revenue" name="Actual Revenue" stroke="#2563eb" strokeWidth={3} fill="url(#revenue-fill)" activeDot={{ r: 5 }} />
++        </AreaChart>
++      </ResponsiveContainer>
++    </div>
+   )
+ }
+diff --git a/src/components/dashboard/sidebar.tsx b/src/components/dashboard/sidebar.tsx
+index cb2980b..efdd028 100644
+--- a/src/components/dashboard/sidebar.tsx
++++ b/src/components/dashboard/sidebar.tsx
+@@ -1,10 +1,10 @@
+ "use client"
+ 
+ import Link from "next/link"
++import Image from "next/image"
+ import { usePathname } from "next/navigation"
+ import { cn } from "@/lib/utils"
+-import { 
+-  TrendingUpIcon, 
++import {
+   LayoutDashboardIcon, 
+   BanknoteIcon, 
+   TargetIcon, 
+@@ -15,7 +15,6 @@ import {
+ } from "lucide-react"
+ 
+ import { useLanguage } from "@/components/providers/language-provider"
+-import { motion } from "framer-motion"
+ 
+ const navigation = [
+   { translationKey: 'nav.overview', href: '/dashboard', icon: LayoutDashboardIcon },
+@@ -32,14 +31,15 @@ export function Sidebar({ onLinkClick }: { onLinkClick?: () => void }) {
+   const { t } = useLanguage()
+ 
+   return (
+-    <div className="flex h-full w-64 flex-col border-r bg-card text-card-foreground">
+-      <div className="flex h-24 items-center border-b px-4 lg:h-[96px] lg:px-6">
++    <div className="flex h-full w-full flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground">
++      <div className="flex h-[72px] items-center border-b border-sidebar-border px-5">
+         <Link href="/" className="flex items-center gap-2 font-semibold">
+-          <img src="/logo.png" alt="Qbix Logo" className="h-20 w-auto object-contain" />
++          <Image src="/logo.png" alt="QBIX" width={180} height={120} priority className="h-12 w-auto object-contain" />
+         </Link>
+       </div>
+-      <div className="flex-1 overflow-auto py-4">
+-        <nav className="grid items-start px-2 text-sm font-medium lg:px-4 space-y-1">
++      <div className="flex-1 overflow-auto py-5">
++        <p className="mb-3 px-6 text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">Workspace</p>
++        <nav className="grid items-start space-y-1 px-3 text-sm font-medium">
+           {navigation.map((item) => {
+             const isActive = pathname === item.href || (item.href !== '/dashboard' && pathname?.startsWith(`${item.href}/`))
+             return (
+@@ -48,24 +48,12 @@ export function Sidebar({ onLinkClick }: { onLinkClick?: () => void }) {
+                 href={item.href}
+                 onClick={onLinkClick}
+                 className={cn(
+-                  "relative flex items-center gap-3 rounded-lg px-3 py-2.5 transition-colors",
+-                  isActive ? "text-primary" : "text-muted-foreground hover:text-foreground"
++                  "flex items-center gap-3 rounded-xl px-3 py-3 transition-colors",
++                  isActive ? "bg-sidebar-accent text-sidebar-accent-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                 )}
+               >
+-                {isActive && (
+-                  <motion.div
+-                    layoutId="sidebar-active"
+-                    className="absolute inset-0 rounded-lg bg-primary/10"
+-                    initial={false}
+-                    transition={{
+-                      type: "spring",
+-                      stiffness: 350,
+-                      damping: 30,
+-                    }}
+-                  />
+-                )}
+-                <item.icon className="relative z-10 h-4 w-4" />
+-                <span className="relative z-10">{t(item.translationKey)}</span>
++                <item.icon className="h-[18px] w-[18px]" />
++                <span>{t(item.translationKey)}</span>
+               </Link>
+             )
+           })}
+diff --git a/src/components/dashboard/topbar.tsx b/src/components/dashboard/topbar.tsx
+index cdf4a82..88c4da8 100644
+--- a/src/components/dashboard/topbar.tsx
++++ b/src/components/dashboard/topbar.tsx
+@@ -1,6 +1,5 @@
+ "use client"
+ 
+-import { Button } from "@/components/ui/button"
+ import {
+   DropdownMenu,
+   DropdownMenuContent,
+@@ -10,7 +9,7 @@ import {
+   DropdownMenuTrigger,
+ } from "@/components/ui/dropdown-menu"
+ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+-import { Menu, LogOut, Settings, User as UserIcon } from "lucide-react"
++import { Bell, ChevronDown, Menu, LogOut, Search, Settings, User as UserIcon } from "lucide-react"
+ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
+ import { Sidebar } from "./sidebar"
+ import { logoutUser } from "@/actions/auth"
+@@ -42,7 +41,7 @@ export function Topbar({ user }: TopbarProps) {
+   }
+ 
+   return (
+-    <header className="flex h-14 items-center gap-4 border-b bg-muted/40 px-4 lg:h-[60px] lg:px-6">
++    <header className="sticky top-0 z-30 flex h-[72px] items-center gap-4 border-b bg-card/95 px-4 backdrop-blur md:px-6">
+       <Sheet open={isOpen} onOpenChange={setIsOpen}>
+         <SheetTrigger className="inline-flex items-center justify-center rounded-md border border-input bg-background p-2 hover:bg-accent hover:text-accent-foreground md:hidden">
+           <Menu className="h-5 w-5" />
+@@ -54,17 +53,25 @@ export function Topbar({ user }: TopbarProps) {
+       </Sheet>
+       
+       <div className="w-full flex-1">
+-        {/* Placeholder for Breadcrumbs or Search */}
++        <div className="relative hidden max-w-sm md:block">
++          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
++          <input className="h-10 w-full rounded-xl border bg-muted/40 pl-10 pr-4 text-sm outline-none transition focus:border-primary focus:ring-4 focus:ring-primary/10" placeholder="Search transactions, reports..." aria-label="Search" />
++        </div>
+       </div>
+-      
++      <button className="relative rounded-xl p-2.5 text-muted-foreground transition hover:bg-muted" aria-label="Notifications">
++        <Bell className="h-[18px] w-[18px]" />
++        <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-primary ring-2 ring-card" />
++      </button>
+       <ThemeToggle />
+       
+       <DropdownMenu>
+-        <DropdownMenuTrigger className="inline-flex items-center justify-center rounded-full border border-input bg-secondary hover:bg-secondary/80 h-9 w-9">
++        <DropdownMenuTrigger className="inline-flex items-center gap-2 rounded-xl p-1.5 pr-2 transition hover:bg-muted">
+           <Avatar className="h-9 w-9">
+             <AvatarImage src={user.image || ""} alt={user.name || "User"} />
+             <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
+           </Avatar>
++          <span className="hidden max-w-28 truncate text-sm font-semibold lg:block">{user.name || "User"}</span>
++          <ChevronDown className="hidden h-4 w-4 text-muted-foreground lg:block" />
+           <span className="sr-only">Toggle user menu</span>
+         </DropdownMenuTrigger>
+         <DropdownMenuContent align="end">
