@@ -31,6 +31,11 @@ export function Topbar({ user }: TopbarProps) {
   const { t } = useLanguage()
   const [isOpen, setIsOpen] = useState(false)
 
+  const handleLogout = async () => {
+    await logoutUser()
+    window.location.href = "/login"
+  }
+
   const getInitials = (name?: string | null) => {
     if (!name) return "U"
     return name.split(" ").map(n => n[0]).join("").substring(0, 2).toUpperCase()
@@ -79,7 +84,7 @@ export function Topbar({ user }: TopbarProps) {
             <span>{t('nav.settings')}</span>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={() => logoutUser()} className="text-destructive focus:bg-destructive focus:text-destructive-foreground">
+          <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:bg-destructive focus:text-destructive-foreground cursor-pointer">
             <LogOut className="mr-2 h-4 w-4" />
             <span>{t('topbar.logout')}</span>
           </DropdownMenuItem>
