@@ -4,9 +4,13 @@ import type { NextRequest } from "next/server"
 export default function middleware(req: NextRequest) {
   const { nextUrl, cookies } = req
 
-  // Simple presence check for the Auth.js session token cookie.
-  // The actual validation is handled by NextAuth in /api/auth routes (Node runtime).
-  const sessionCookie = cookies.get("authjs.session-token")
+  // Check both HTTPS secure and HTTP session token cookies across Auth.js and NextAuth naming
+  const sessionCookie =
+    cookies.get("__Secure-authjs.session-token") ||
+    cookies.get("authjs.session-token") ||
+    cookies.get("__Secure-next-auth.session-token") ||
+    cookies.get("next-auth.session-token")
+
   const isLoggedIn = !!sessionCookie?.value
 
   const isApiAuthRoute = nextUrl.pathname.startsWith("/api/auth")
