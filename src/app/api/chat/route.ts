@@ -1,9 +1,7 @@
-import { GoogleGenerativeAI } from "@google/generative-ai"
-import { GoogleGenerativeAIStream, StreamingTextResponse } from "ai"
-import { NextResponse } from "next/server"
+import { streamText } from "ai"
+import { createGoogle } from "@ai-sdk/google"
 
 export const maxDuration = 30
-export const runtime = "nodejs"
 
 export async function POST(req: Request) {
   try {
@@ -11,13 +9,13 @@ export async function POST(req: Request) {
     const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_GENERATIVE_AI_API_KEY
 
     if (!apiKey) {
-      return NextResponse.json({
-        error: "GEMINI_API_KEY is not configured in environment variables."
-      }, { status: 400 })
+      return new Response(JSON.stringify({ error: "GEMINI_API_KEY is not configured in environment variables." }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" }
+      })
     }
 
-    const genAI = new GoogleGenerativeAI(apiKey)
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" })
+    const google = createGoogle({ apiKey })
 
     const systemPrompt = `You are a senior financial analyst AI for an enterprise revenue tracking platform called QBIX RevenueTrack AI.
 Your goal is to answer questions about the user's organizational revenue, goals, and performance.
@@ -27,27 +25,18 @@ Be professional, concise, and highly actionable.
 Organization Context:
 ${dataContext || "No context provided."}`
 
-    const formattedMessages = [
-      { role: "user", parts: [{ text: systemPrompt }] },
-      { role: "model", parts: [{ text: "Understood. I will analyze the organization context and assist as the QBIX RevenueTrack AI." }] }
-    ]
-    
-    for (const m of messages) {
-      if (m.role === "system") continue;
-      formattedMessages.push({
-        role: m.role === "user" ? "user" : "model",
-        parts: [{ text: m.content }]
-      })
-    }
-
-    const geminiStream = await model.generateContentStream({
-      contents: formattedMessages,
+    const result = await streamText({
+      model: google("gemini-1.5-flash") as any,
+      system: systemPrompt,
+      messages,
     })
 
-    const stream = GoogleGenerativeAIStream(geminiStream)
-    return new StreamingTextResponse(stream)
+    return (result as any).toDataStreamResponse()
   } catch (error: any) {
     console.error("AI Chat Error:", error)
-    return NextResponse.json({ error: error?.message || "Failed to process chat request" }, { status: 500 })
+    return new Response(JSON.stringify({ error: error?.message || "Failed to process chat request" }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" }
+    })
   }
 }
