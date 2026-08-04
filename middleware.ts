@@ -3,16 +3,23 @@ import type { NextRequest } from "next/server"
 
 export default function middleware(req: NextRequest) {
   const { nextUrl, cookies } = req
+  const pathname = nextUrl.pathname
+  const lowerPath = pathname.toLowerCase()
+
+  const cookieHeader = req.headers.get("cookie") || ""
+  const hasSessionInHeader = 
+    cookieHeader.includes("session-token") || 
+    cookieHeader.includes("authjs") || 
+    cookieHeader.includes("next-auth")
 
   const sessionCookie =
     cookies.get("__Secure-authjs.session-token") ||
     cookies.get("authjs.session-token") ||
     cookies.get("__Secure-next-auth.session-token") ||
-    cookies.get("next-auth.session-token")
+    cookies.get("next-auth.session-token") ||
+    cookies.get("__Host-authjs.session-token")
 
-  const isLoggedIn = !!sessionCookie?.value
-  const pathname = nextUrl.pathname
-  const lowerPath = pathname.toLowerCase()
+  const isLoggedIn = !!sessionCookie?.value || hasSessionInHeader
 
   // Dynamic Profile / Account / Admin / User URL interception -> redirect straight to /dashboard/settings
   const isProfileRoute = 

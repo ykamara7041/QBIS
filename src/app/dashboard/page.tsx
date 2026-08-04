@@ -2,16 +2,49 @@ import { auth } from "@/../auth"
 import { db } from "@/lib/db"
 import { RevenueDataPoint } from "@/components/dashboard/revenue-chart"
 import { DashboardContent } from "./dashboard-content"
+import { redirect } from "next/navigation"
 
 export default async function DashboardOverviewPage({ searchParams }: { searchParams: Promise<{ range?: string }> }) {
   const session = await auth()
   
-  const member = await db.organizationMember.findFirst({
-    where: { userId: session?.user?.id },
+  if (!session?.user) {
+    redirect("/login")
+  }
+
+  let member = await db.organizationMember.findFirst({
+    where: { userId: session.user.id },
     include: { organization: true }
   })
 
-  if (!member) return <div>Access Denied</div>
+  // Auto-provision organization & member if not found for user
+  if (!member && session.user.id) {
+    let org = await db.organization.findFirst()
+    if (!org) {
+      org = await db.organization.create({
+        data: {
+          name: `${session.user.name || 'User'}'s Organization`,
+          defaultCurrency: "GNF"
+        }
+      })
+    }
+
+    member = await db.organizationMember.create({
+      data: {
+        userId: session.user.id,
+        organizationId: org.id,
+        role: "SUPER_ADMIN"
+      },
+      include: { organization: true }
+    })
+  }
+
+  if (!member) {
+    return (
+      <div className="flex h-64 items-center justify-center text-center">
+        <p className="text-muted-foreground">Setting up your organization... Please refresh the page.</p>
+      </div>
+    )
+  }
 
   const params = await searchParams
   const range = params.range || "year"
@@ -38,7 +71,6 @@ export default async function DashboardOverviewPage({ searchParams }: { searchPa
       startDate.setFullYear(now.getFullYear() - 1)
   }
 
-  // Fetch approved transactions based on date range
   const approvedTxs = await db.revenueTransaction.findMany({
     where: {
       organizationId: member.organizationId,
@@ -51,7 +83,6 @@ export default async function DashboardOverviewPage({ searchParams }: { searchPa
     orderBy: { date: "asc" }
   })
 
-  // Separate Revenues vs Operating Expenses
   const revenueTxs = approvedTxs.filter(tx => tx.status !== "EXPENSE")
   const expenseTxs = approvedTxs.filter(tx => tx.status === "EXPENSE")
 
@@ -59,7 +90,6 @@ export default async function DashboardOverviewPage({ searchParams }: { searchPa
   const totalExpenses = expenseTxs.reduce((sum, tx) => sum + tx.amount, 0)
   const netProfit = totalRevenue - totalExpenses
 
-  // Build chart data based on range
   const aggregatedData: Record<string, number> = {}
   
   revenueTxs.forEach(tx => {
@@ -82,7 +112,7 @@ export default async function DashboardOverviewPage({ searchParams }: { searchPa
 
   return (
     <DashboardContent 
-      userName={session?.user?.name || 'User'} 
+      userName={session.user.name || 'User'} 
       chartData={chartData} 
       totalRevenue={totalRevenue}
       totalExpenses={totalExpenses}
