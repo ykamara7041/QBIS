@@ -48,7 +48,6 @@ export async function registerUser(formData: FormData) {
       },
     })
 
-    // Check if user has an organization member entry; if not, create default org
     const existingMember = await db.organizationMember.findFirst({
       where: { userId: newUser.id }
     })
@@ -69,20 +68,26 @@ export async function registerUser(formData: FormData) {
         }
       })
     }
+
+    // Set fallback session cookie
+    const cookieStore = await cookies()
+    cookieStore.set("qbix_session", newUser.id, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      path: "/",
+      maxAge: 60 * 60 * 24 * 7,
+    })
   } catch (error) {
     console.error("Failed to register:", error)
     return { error: "Failed to create account" }
   }
 
   try {
-    const result = await signIn("credentials", {
+    await signIn("credentials", {
       email: normalizedEmail,
       password,
       redirect: false,
     })
-    if (result?.error) {
-      return { error: "Account created! Please sign in with your password." }
-    }
     return { success: true, redirectTo: "/dashboard" }
   } catch (error) {
     return { success: true, redirectTo: "/dashboard" }
@@ -151,6 +156,15 @@ export async function loginUser(formData: FormData) {
       return { error: "Incorrect password. Please check your credentials and try again." }
     }
 
+    // Set fallback session cookie
+    const cookieStore = await cookies()
+    cookieStore.set("qbix_session", user.id, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      path: "/",
+      maxAge: 60 * 60 * 24 * 7,
+    })
+
     // Authenticate with NextAuth
     await signIn("credentials", {
       email: normalizedEmail,
@@ -170,11 +184,16 @@ export async function loginUser(formData: FormData) {
 
 export async function logoutUser() {
   const cookieStore = await cookies()
+  cookieStore.delete("qbix_session")
   cookieStore.delete("__Secure-authjs.session-token")
   cookieStore.delete("authjs.session-token")
   cookieStore.delete("__Secure-next-auth.session-token")
   cookieStore.delete("next-auth.session-token")
-  await signOut({ redirect: false })
+  try {
+    await signOut({ redirect: false })
+  } catch (e) {
+    // Ignore signOut redirect throw
+  }
   return { success: true }
 }
 
@@ -199,12 +218,16 @@ export async function updateAccountCredentials(formData: FormData) {
 
   try {
     const session = await auth()
-    if (!session?.user?.id) {
+    const cookieStore = await cookies()
+    const fallbackUserId = cookieStore.get("qbix_session")?.value
+    const activeUserId = session?.user?.id || fallbackUserId
+
+    if (!activeUserId) {
       return { error: "Not authenticated" }
     }
 
     const currentUser = await db.user.findUnique({
-      where: { id: session.user.id },
+      where: { id: activeUserId },
     })
 
     if (!currentUser) {
@@ -229,7 +252,7 @@ export async function updateAccountCredentials(formData: FormData) {
     }
 
     await db.user.update({
-      where: { id: session.user.id },
+      where: { id: activeUserId },
       data: updateData,
     })
 

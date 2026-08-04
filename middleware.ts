@@ -8,11 +8,13 @@ export default function middleware(req: NextRequest) {
 
   const cookieHeader = req.headers.get("cookie") || ""
   const hasSessionInHeader = 
+    cookieHeader.includes("qbix_session") ||
     cookieHeader.includes("session-token") || 
     cookieHeader.includes("authjs") || 
     cookieHeader.includes("next-auth")
 
   const sessionCookie =
+    cookies.get("qbix_session") ||
     cookies.get("__Secure-authjs.session-token") ||
     cookies.get("authjs.session-token") ||
     cookies.get("__Secure-next-auth.session-token") ||

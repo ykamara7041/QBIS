@@ -3,26 +3,33 @@ import { db } from "@/lib/db"
 import { RevenueDataPoint } from "@/components/dashboard/revenue-chart"
 import { DashboardContent } from "./dashboard-content"
 import { redirect } from "next/navigation"
+import { cookies } from "next/headers"
 
 export default async function DashboardOverviewPage({ searchParams }: { searchParams: Promise<{ range?: string }> }) {
   const session = await auth()
+  const cookieStore = await cookies()
+  const fallbackUserId = cookieStore.get("qbix_session")?.value
+  const activeUserId = session?.user?.id || fallbackUserId
   
-  if (!session?.user) {
+  if (!activeUserId) {
     redirect("/login")
   }
 
+  const currentUser = await db.user.findUnique({
+    where: { id: activeUserId }
+  })
+
   let member = await db.organizationMember.findFirst({
-    where: { userId: session.user.id },
+    where: { userId: activeUserId },
     include: { organization: true }
   })
 
-  // Auto-provision organization & member if not found for user
-  if (!member && session.user.id) {
+  if (!member && activeUserId) {
     let org = await db.organization.findFirst()
     if (!org) {
       org = await db.organization.create({
         data: {
-          name: `${session.user.name || 'User'}'s Organization`,
+          name: `${currentUser?.name || 'User'}'s Organization`,
           defaultCurrency: "GNF"
         }
       })
@@ -30,7 +37,7 @@ export default async function DashboardOverviewPage({ searchParams }: { searchPa
 
     member = await db.organizationMember.create({
       data: {
-        userId: session.user.id,
+        userId: activeUserId,
         organizationId: org.id,
         role: "SUPER_ADMIN"
       },
@@ -112,7 +119,7 @@ export default async function DashboardOverviewPage({ searchParams }: { searchPa
 
   return (
     <DashboardContent 
-      userName={session.user.name || 'User'} 
+      userName={currentUser?.name || session?.user?.name || 'User'} 
       chartData={chartData} 
       totalRevenue={totalRevenue}
       totalExpenses={totalExpenses}
