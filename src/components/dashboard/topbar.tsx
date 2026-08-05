@@ -48,11 +48,9 @@ export function Topbar({ user }: TopbarProps) {
   return (
     <header className="sticky top-0 z-30 flex h-[72px] items-center gap-4 border-b bg-card/95 px-4 backdrop-blur md:px-6">
       <Sheet open={isOpen} onOpenChange={setIsOpen}>
-        <SheetTrigger asChild>
-          <button className="inline-flex items-center justify-center rounded-md border border-input bg-background p-2 hover:bg-accent hover:text-accent-foreground md:hidden">
-            <Menu className="h-5 w-5" />
-            <span className="sr-only">Toggle navigation menu</span>
-          </button>
+        <SheetTrigger className="inline-flex items-center justify-center rounded-md border border-input bg-background p-2 hover:bg-accent hover:text-accent-foreground md:hidden cursor-pointer">
+          <Menu className="h-5 w-5" />
+          <span className="sr-only">Toggle navigation menu</span>
         </SheetTrigger>
         <SheetContent side="left" className="p-0 flex flex-col w-64">
           <Sidebar onLinkClick={() => setIsOpen(false)} />
