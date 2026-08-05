@@ -23,10 +23,9 @@ export default function middleware(req: NextRequest) {
 
   const isLoggedIn = !!sessionCookie?.value || hasSessionInHeader
 
-  // Dynamic Profile / Account / Admin / User URL interception -> redirect straight to /dashboard/settings
-  const isProfileRoute = 
+  // Intercept profile/account/admin alias URLs and redirect straight to /dashboard/profile
+  const isProfileAlias = 
     lowerPath === "/profile" || lowerPath.startsWith("/profile/") ||
-    lowerPath === "/dashboard/profile" || lowerPath.startsWith("/dashboard/profile/") ||
     lowerPath === "/account" || lowerPath.startsWith("/account/") ||
     lowerPath === "/dashboard/account" || lowerPath.startsWith("/dashboard/account/") ||
     lowerPath === "/admin" || lowerPath.startsWith("/admin/") ||
@@ -36,8 +35,8 @@ export default function middleware(req: NextRequest) {
     lowerPath === "/user" || lowerPath.startsWith("/user/") ||
     lowerPath === "/dashboard/user" || lowerPath.startsWith("/dashboard/user/")
 
-  if (isProfileRoute) {
-    return NextResponse.redirect(new URL("/dashboard/settings", nextUrl))
+  if (isProfileAlias) {
+    return NextResponse.redirect(new URL("/dashboard/profile", nextUrl))
   }
 
   const isApiAuthRoute = pathname.startsWith("/api/auth")
