@@ -31,6 +31,8 @@ export default function middleware(req: NextRequest) {
     lowerPath === "/dashboard/account" || lowerPath.startsWith("/dashboard/account/") ||
     lowerPath === "/admin" || lowerPath.startsWith("/admin/") ||
     lowerPath === "/dashboard/admin" || lowerPath.startsWith("/dashboard/admin/") ||
+    lowerPath === "/super-admin" || lowerPath.startsWith("/super-admin/") ||
+    lowerPath === "/dashboard/super-admin" || lowerPath.startsWith("/dashboard/super-admin/") ||
     lowerPath === "/user" || lowerPath.startsWith("/user/") ||
     lowerPath === "/dashboard/user" || lowerPath.startsWith("/dashboard/user/")
 
