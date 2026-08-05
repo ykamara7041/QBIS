@@ -2,6 +2,7 @@
 
 import { db } from "@/lib/db"
 import { auth } from "@/../auth"
+import { cookies } from "next/headers"
 import { revalidatePath } from "next/cache"
 import { z } from "zod"
 
@@ -14,14 +15,21 @@ const expenseSchema = z.object({
   customerName: z.string().optional(),
   receiptNumber: z.string().optional(),
   agentName: z.string().optional(),
+  branchId: z.string().optional(),
 })
 
-export async function addExpenseTransaction(data: z.infer<typeof expenseSchema>) {
+async function getActiveUserId() {
   const session = await auth()
-  if (!session?.user) throw new Error("Unauthorized")
+  const cookieStore = await cookies()
+  return session?.user?.id || cookieStore.get("qbix_session")?.value
+}
+
+export async function addExpenseTransaction(data: z.infer<typeof expenseSchema>) {
+  const userId = await getActiveUserId()
+  if (!userId) throw new Error("Unauthorized")
 
   const member = await db.organizationMember.findFirst({
-    where: { userId: session.user.id },
+    where: { userId },
     include: { organization: true }
   })
   
@@ -63,6 +71,7 @@ export async function addExpenseTransaction(data: z.infer<typeof expenseSchema>)
       customerName: data.customerName,
       receiptNumber: data.receiptNumber || `EXP-${Date.now()}`,
       agentName: data.agentName,
+      branchId: data.branchId || null,
       approvalStatus: "APPROVED",
       status: "EXPENSE"
     }
@@ -70,5 +79,6 @@ export async function addExpenseTransaction(data: z.infer<typeof expenseSchema>)
 
   revalidatePath("/dashboard")
   revalidatePath("/dashboard/revenue")
+  revalidatePath("/dashboard/branches")
   return { success: true }
 }

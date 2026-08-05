@@ -2,6 +2,7 @@ export const dictionaries: Record<string, Record<string, string>> = {
   en: {
     "nav.overview": "Overview",
     "nav.revenue": "Revenue",
+    "nav.branches": "Branches",
     "nav.approvals": "Approvals",
     "nav.targets": "Targets",
     "nav.reports": "Reports",

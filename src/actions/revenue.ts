@@ -2,6 +2,7 @@
 
 import { db } from "@/lib/db"
 import { auth } from "@/../auth"
+import { cookies } from "next/headers"
 import { revalidatePath } from "next/cache"
 import { z } from "zod"
 
@@ -14,18 +15,25 @@ const revenueSchema = z.object({
   customerName: z.string().optional(),
   receiptNumber: z.string().optional(),
   agentName: z.string().optional(),
+  branchId: z.string().optional(),
 })
 
 const updateRevenueSchema = revenueSchema.extend({
   id: z.string().min(1)
 })
 
-export async function addRevenueTransaction(data: z.infer<typeof revenueSchema>) {
+async function getActiveUserId() {
   const session = await auth()
-  if (!session?.user) throw new Error("Unauthorized")
+  const cookieStore = await cookies()
+  return session?.user?.id || cookieStore.get("qbix_session")?.value
+}
+
+export async function addRevenueTransaction(data: z.infer<typeof revenueSchema>) {
+  const userId = await getActiveUserId()
+  if (!userId) throw new Error("Unauthorized")
 
   const member = await db.organizationMember.findFirst({
-    where: { userId: session.user.id },
+    where: { userId },
     include: { organization: true }
   })
   
@@ -67,6 +75,7 @@ export async function addRevenueTransaction(data: z.infer<typeof revenueSchema>)
       customerName: data.customerName,
       receiptNumber: data.receiptNumber,
       agentName: data.agentName,
+      branchId: data.branchId || null,
       approvalStatus: "APPROVED",
       status: "COMPLETED"
     }
@@ -74,15 +83,16 @@ export async function addRevenueTransaction(data: z.infer<typeof revenueSchema>)
 
   revalidatePath("/dashboard")
   revalidatePath("/dashboard/revenue")
+  revalidatePath("/dashboard/branches")
   return { success: true }
 }
 
 export async function updateRevenueTransaction(data: z.infer<typeof updateRevenueSchema>) {
-  const session = await auth()
-  if (!session?.user) throw new Error("Unauthorized")
+  const userId = await getActiveUserId()
+  if (!userId) throw new Error("Unauthorized")
 
   const member = await db.organizationMember.findFirst({
-    where: { userId: session.user.id },
+    where: { userId },
     include: { organization: true }
   })
   
@@ -123,17 +133,19 @@ export async function updateRevenueTransaction(data: z.infer<typeof updateRevenu
       customerName: data.customerName,
       receiptNumber: data.receiptNumber,
       agentName: data.agentName,
+      branchId: data.branchId || null,
     }
   })
 
   revalidatePath("/dashboard")
   revalidatePath("/dashboard/revenue")
+  revalidatePath("/dashboard/branches")
   return { success: true }
 }
 
 export async function deleteRevenueTransaction(transactionId: string) {
-  const session = await auth()
-  if (!session?.user) throw new Error("Unauthorized")
+  const userId = await getActiveUserId()
+  if (!userId) throw new Error("Unauthorized")
 
   await db.revenueTransaction.delete({
     where: { id: transactionId }
@@ -141,21 +153,22 @@ export async function deleteRevenueTransaction(transactionId: string) {
 
   revalidatePath("/dashboard")
   revalidatePath("/dashboard/revenue")
+  revalidatePath("/dashboard/branches")
   return { success: true }
 }
 
 export async function approveTransaction(transactionId: string) {
-  const session = await auth()
-  if (!session?.user) throw new Error("Unauthorized")
+  const userId = await getActiveUserId()
+  if (!userId) throw new Error("Unauthorized")
   
-  const tx = await db.revenueTransaction.update({
+  await db.revenueTransaction.update({
     where: { id: transactionId },
     data: { approvalStatus: "APPROVED" },
-    include: { organization: true }
   })
   
   revalidatePath("/dashboard")
   revalidatePath("/dashboard/revenue")
   revalidatePath("/dashboard/approvals")
+  revalidatePath("/dashboard/branches")
   return { success: true }
 }

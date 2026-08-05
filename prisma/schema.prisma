@@ -32,6 +32,23 @@ model Organization {
   members             OrganizationMember[]
   revenueTransactions RevenueTransaction[]
   revenueGoals        RevenueGoal[]
+  branches            Branch[]
+}
+
+model Branch {
+  id             String       @id @default(cuid())
+  organizationId String
+  name           String
+  code           String?
+  location       String?
+  managerName    String?
+  targetBudget   Float?       @default(0)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  transactions   RevenueTransaction[]
+  members        OrganizationMember[]
 }
 
 model User {
@@ -64,6 +81,7 @@ model OrganizationMember {
 
   user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  branch       Branch?      @relation(fields: [branchId], references: [id], onDelete: SetNull)
 
   @@unique([userId, organizationId])
 }
@@ -137,6 +155,7 @@ model RevenueTransaction {
   updatedAt        DateTime     @updatedAt
 
   organization     Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  branch           Branch?      @relation(fields: [branchId], references: [id], onDelete: SetNull)
 }
 
 model RevenueGoal {

@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils"
 import {
   LayoutDashboardIcon, 
   BanknoteIcon, 
+  Building2,
   TargetIcon, 
   SettingsIcon,
   CheckSquareIcon,
@@ -18,6 +19,7 @@ import { useLanguage } from "@/components/providers/language-provider"
 const navigation = [
   { translationKey: 'nav.overview', href: '/dashboard', icon: LayoutDashboardIcon },
   { translationKey: 'nav.revenue', href: '/dashboard/revenue', icon: BanknoteIcon },
+  { translationKey: 'nav.branches', href: '/dashboard/branches', icon: Building2 },
   { translationKey: 'nav.approvals', href: '/dashboard/approvals', icon: CheckSquareIcon },
   { translationKey: 'nav.targets', href: '/dashboard/targets', icon: TargetIcon },
   { translationKey: 'nav.reports', href: '/dashboard/reports', icon: FileTextIcon },
@@ -51,7 +53,7 @@ export function Sidebar({ onLinkClick }: { onLinkClick?: () => void }) {
                 )}
               >
                 <item.icon className="h-[18px] w-[18px]" />
-                <span>{t(item.translationKey)}</span>
+                <span>{t(item.translationKey) || item.translationKey.split('.')[1]}</span>
               </Link>
             )
           })}
