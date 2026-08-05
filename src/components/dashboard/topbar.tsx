@@ -70,16 +70,14 @@ export function Topbar({ user }: TopbarProps) {
       <ThemeToggle />
 
       <DropdownMenu open={profileOpen} onOpenChange={setProfileOpen}>
-        <DropdownMenuTrigger asChild>
-          <button className="inline-flex items-center gap-2 rounded-xl p-1.5 pr-2 transition hover:bg-muted cursor-pointer">
-            <Avatar className="h-9 w-9">
-              <AvatarImage src={user.image || ""} alt={user.name || "User"} />
-              <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
-            </Avatar>
-            <span className="hidden max-w-28 truncate text-sm font-semibold lg:block">{user.name || "User"}</span>
-            <ChevronDown className="hidden h-4 w-4 text-muted-foreground lg:block" />
-            <span className="sr-only">Toggle user menu</span>
-          </button>
+        <DropdownMenuTrigger className="inline-flex items-center gap-2 rounded-xl p-1.5 pr-2 transition hover:bg-muted cursor-pointer outline-none">
+          <Avatar className="h-9 w-9">
+            <AvatarImage src={user.image || ""} alt={user.name || "User"} />
+            <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
+          </Avatar>
+          <span className="hidden max-w-28 truncate text-sm font-semibold lg:block">{user.name || "User"}</span>
+          <ChevronDown className="hidden h-4 w-4 text-muted-foreground lg:block" />
+          <span className="sr-only">Toggle user menu</span>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-56">
           <DropdownMenuLabel className="font-normal">
