@@ -29,6 +29,7 @@ export async function registerUser(formData: FormData) {
   const { name, email, password } = validatedFields.data
   const normalizedEmail = email.toLowerCase().trim()
 
+  let newUser
   try {
     const existingUser = await db.user.findUnique({
       where: { email: normalizedEmail },
@@ -40,7 +41,7 @@ export async function registerUser(formData: FormData) {
 
     const passwordHash = await bcrypt.hash(password, 10)
 
-    const newUser = await db.user.create({
+    newUser = await db.user.create({
       data: {
         name,
         email: normalizedEmail,
@@ -68,8 +69,12 @@ export async function registerUser(formData: FormData) {
         }
       })
     }
+  } catch (error: any) {
+    console.error("Failed to register user in database:", error)
+    return { error: "Database error during registration. Please verify database connection." }
+  }
 
-    // Set fallback session cookie
+  try {
     const cookieStore = await cookies()
     cookieStore.set("qbix_session", newUser.id, {
       httpOnly: true,
@@ -77,21 +82,17 @@ export async function registerUser(formData: FormData) {
       path: "/",
       maxAge: 60 * 60 * 24 * 7,
     })
-  } catch (error) {
-    console.error("Failed to register:", error)
-    return { error: "Failed to create account" }
-  }
 
-  try {
     await signIn("credentials", {
       email: normalizedEmail,
       password,
       redirect: false,
     })
-    return { success: true, redirectTo: "/dashboard" }
   } catch (error) {
-    return { success: true, redirectTo: "/dashboard" }
+    // NextAuth signIn success or redirect exception
   }
+
+  return { success: true, redirectTo: "/dashboard" }
 }
 
 const loginSchema = z.object({
@@ -114,8 +115,10 @@ export async function loginUser(formData: FormData) {
   const { email, password } = validatedFields.data
   const normalizedEmail = email.toLowerCase().trim()
 
+  let user = null
+
+  // 1. Safe Database Authentication Check
   try {
-    // If database has 0 users (fresh deployment) and email is admin@demo.com, auto-seed Super Admin
     const userCount = await db.user.count()
     if (userCount === 0 && normalizedEmail === "admin@demo.com") {
       const passwordHash = await bcrypt.hash(password, 10)
@@ -143,20 +146,25 @@ export async function loginUser(formData: FormData) {
       })
     }
 
-    const user = await db.user.findUnique({
+    user = await db.user.findUnique({
       where: { email: normalizedEmail },
     })
+  } catch (error: any) {
+    console.error("Database connection error in loginUser:", error)
+    return { error: "Unable to connect to database. Please check your database settings." }
+  }
 
-    if (!user || !user.passwordHash) {
-      return { error: "Account not found. Please click Sign Up to create your account." }
-    }
+  if (!user || !user.passwordHash) {
+    return { error: "Account not found. Please click Sign Up to create your account." }
+  }
 
-    const isValidPassword = await bcrypt.compare(password, user.passwordHash)
-    if (!isValidPassword) {
-      return { error: "Incorrect password. Please check your credentials and try again." }
-    }
+  const isValidPassword = await bcrypt.compare(password, user.passwordHash)
+  if (!isValidPassword) {
+    return { error: "Incorrect password. Please check your credentials and try again." }
+  }
 
-    // Set fallback session cookie
+  // 2. Set Session Cookie
+  try {
     const cookieStore = await cookies()
     cookieStore.set("qbix_session", user.id, {
       httpOnly: true,
@@ -164,22 +172,24 @@ export async function loginUser(formData: FormData) {
       path: "/",
       maxAge: 60 * 60 * 24 * 7,
     })
+  } catch (e) {
+    console.error("Error setting session cookie:", e)
+  }
 
-    // Authenticate with NextAuth
+  // 3. Perform NextAuth Sign In
+  try {
     await signIn("credentials", {
       email: normalizedEmail,
       password,
       redirect: false,
     })
-
-    return { success: true, redirectTo: "/dashboard" }
   } catch (error) {
     if (error instanceof AuthError) {
-      return { error: "Authentication failed. Please verify your email and password." }
+      return { error: "Authentication failed. Please check your credentials." }
     }
-    // NextAuth signIn success or redirect exception
-    return { success: true, redirectTo: "/dashboard" }
   }
+
+  return { success: true, redirectTo: "/dashboard" }
 }
 
 export async function logoutUser() {
