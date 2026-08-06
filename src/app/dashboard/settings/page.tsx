@@ -89,6 +89,7 @@ export default async function SettingsPage() {
       defaultCurrency={currentMember.organization.defaultCurrency}
       isAdmin={isAdmin}
       userId={currentUser.id}
+      userEmail={currentUser.email}
       currentLanguage={currentUser.language}
       membersList={membersList}
       organizationId={currentMember.organizationId}

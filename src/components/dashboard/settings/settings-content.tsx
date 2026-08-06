@@ -4,6 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { UserManagement, UserMember } from "@/components/dashboard/settings/user-management"
 import { LanguagePreferences } from "@/components/dashboard/settings/language-preferences"
 import { CurrencyViewer } from "@/components/dashboard/settings/currency-viewer"
+import { AccountSettings } from "@/components/dashboard/settings/account-settings"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -16,6 +17,7 @@ interface SettingsContentProps {
   defaultCurrency: string
   isAdmin: boolean
   userId: string
+  userEmail: string
   currentLanguage: string
   membersList: UserMember[]
   organizationId: string
@@ -27,6 +29,7 @@ export function SettingsContent({
   defaultCurrency,
   isAdmin,
   userId,
+  userEmail,
   currentLanguage,
   membersList,
   organizationId,
@@ -34,7 +37,7 @@ export function SettingsContent({
 }: SettingsContentProps) {
   const { t } = useLanguage()
   const searchParams = useSearchParams()
-  const initialTab = searchParams.get("tab") === "preferences" ? "preferences" : "general"
+  const initialTab = searchParams.get("tab") === "preferences" ? "preferences" : searchParams.get("tab") === "security" ? "security" : "general"
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto w-full">
@@ -44,8 +47,9 @@ export function SettingsContent({
       </div>
 
       <Tabs defaultValue={initialTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-3 md:w-[400px]">
+        <TabsList className="grid w-full grid-cols-4 md:w-[500px]">
           <TabsTrigger value="general">{t("settings.tab_general")}</TabsTrigger>
+          <TabsTrigger value="security">Security</TabsTrigger>
           <TabsTrigger value="team">{t("settings.tab_team")}</TabsTrigger>
           <TabsTrigger value="preferences">{t("settings.tab_preferences")}</TabsTrigger>
         </TabsList>
@@ -67,6 +71,18 @@ export function SettingsContent({
                 <Input id="currency" defaultValue={defaultCurrency} disabled={!isAdmin} />
               </div>
               {isAdmin && <Button>{t("settings.save_changes")}</Button>}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="security" className="mt-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Account & Admin Password Settings</CardTitle>
+              <CardDescription>Update your email address or change your account password.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <AccountSettings user={{ email: userEmail }} />
             </CardContent>
           </Card>
         </TabsContent>
