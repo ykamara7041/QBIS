@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -22,15 +22,27 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { addExpenseTransaction } from "@/actions/expense"
-import { Loader2, MinusCircle } from "lucide-react"
+import { getOrganizationBranches } from "@/actions/branches"
+import { Loader2, MinusCircle, Building2 } from "lucide-react"
 import { useLanguage } from "@/components/providers/language-provider"
+
+interface BranchItem {
+  id: string
+  name: string
+  code?: string | null
+}
 
 export function AddExpenseDialog() {
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
+  const [branches, setBranches] = useState<BranchItem[]>([])
   const router = useRouter()
   const { t } = useLanguage()
+
+  useEffect(() => {
+    getOrganizationBranches().then(setBranches).catch(() => {})
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -38,6 +50,8 @@ export function AddExpenseDialog() {
     setError("")
 
     const formData = new FormData(e.currentTarget)
+    const branchVal = formData.get("branchId") as string
+    const branchId = branchVal && branchVal !== "all" ? branchVal : undefined
 
     try {
       await addExpenseTransaction({
@@ -48,6 +62,7 @@ export function AddExpenseDialog() {
         paymentMethod: formData.get("paymentMethod") as string,
         customerName: formData.get("vendorName") as string,
         receiptNumber: formData.get("receiptNumber") as string,
+        branchId,
       })
       setOpen(false)
       router.refresh()
@@ -69,12 +84,33 @@ export function AddExpenseDialog() {
         <DialogHeader>
           <DialogTitle>{t('dashboard.add_expense')}</DialogTitle>
           <DialogDescription>
-            {t('dashboard.subheading')}
+            Record an operational expenditure and assign it to a company branch.
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4 py-2">
           {error && <div className="text-xs font-semibold text-destructive">{error}</div>}
+
+          {/* Branch Location Selector */}
+          <div className="space-y-1.5">
+            <Label htmlFor="branchId" className="text-xs flex items-center gap-1 font-semibold">
+              <Building2 className="h-3.5 w-3.5 text-blue-600" />
+              Company Branch
+            </Label>
+            <Select name="branchId" defaultValue="all">
+              <SelectTrigger className="h-10 text-sm">
+                <SelectValue placeholder="Select target branch" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Head Office / All Branches (Unassigned)</SelectItem>
+                {branches.map(b => (
+                  <SelectItem key={b.id} value={b.id}>
+                    {b.name} {b.code ? `(${b.code})` : ""}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">

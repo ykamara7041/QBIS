@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -22,7 +22,14 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { updateRevenueTransaction, deleteRevenueTransaction } from "@/actions/revenue"
-import { Edit2, Loader2, Trash2 } from "lucide-react"
+import { getOrganizationBranches } from "@/actions/branches"
+import { Edit2, Loader2, Trash2, Building2 } from "lucide-react"
+
+interface BranchItem {
+  id: string
+  name: string
+  code?: string | null
+}
 
 interface TransactionItem {
   id: string
@@ -36,6 +43,7 @@ interface TransactionItem {
   customerName?: string | null
   receiptNumber?: string | null
   agentName?: string | null
+  branchId?: string | null
   date: Date | string
 }
 
@@ -44,7 +52,12 @@ export function EditTransactionDialog({ transaction }: { transaction: Transactio
   const [loading, setLoading] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [error, setError] = useState("")
+  const [branches, setBranches] = useState<BranchItem[]>([])
   const router = useRouter()
+
+  useEffect(() => {
+    getOrganizationBranches().then(setBranches).catch(() => {})
+  }, [])
 
   const handleUpdate = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -52,6 +65,8 @@ export function EditTransactionDialog({ transaction }: { transaction: Transactio
     setError("")
 
     const formData = new FormData(e.currentTarget)
+    const branchVal = formData.get("branchId") as string
+    const branchId = branchVal && branchVal !== "all" ? branchVal : undefined
 
     try {
       await updateRevenueTransaction({
@@ -64,6 +79,7 @@ export function EditTransactionDialog({ transaction }: { transaction: Transactio
         customerName: formData.get("customerName") as string,
         receiptNumber: formData.get("receiptNumber") as string,
         agentName: formData.get("agentName") as string,
+        branchId,
       })
       setOpen(false)
       router.refresh()
@@ -105,6 +121,27 @@ export function EditTransactionDialog({ transaction }: { transaction: Transactio
 
         <form onSubmit={handleUpdate} className="space-y-4 py-2">
           {error && <div className="text-xs font-semibold text-destructive">{error}</div>}
+
+          {/* Branch Location Selector */}
+          <div className="space-y-1.5">
+            <Label htmlFor="branchId" className="text-xs flex items-center gap-1 font-semibold">
+              <Building2 className="h-3.5 w-3.5 text-blue-600" />
+              Target Company Branch
+            </Label>
+            <Select name="branchId" defaultValue={transaction.branchId || "all"}>
+              <SelectTrigger className="h-10 text-sm">
+                <SelectValue placeholder="Select target branch" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Head Office / All Branches (Unassigned)</SelectItem>
+                {branches.map(b => (
+                  <SelectItem key={b.id} value={b.id}>
+                    {b.name} {b.code ? `(${b.code})` : ""}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
@@ -217,7 +254,7 @@ export function EditTransactionDialog({ transaction }: { transaction: Transactio
               <Button type="button" variant="outline" size="sm" onClick={() => setOpen(false)} className="h-9 text-xs">
                 Cancel
               </Button>
-              <Button type="submit" size="sm" disabled={loading} className="h-9 text-xs">
+              <Button type="submit" size="sm" disabled={loading} className="h-9 text-xs bg-blue-600 hover:bg-blue-700 text-white font-medium">
                 {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Save Changes"}
               </Button>
             </div>
