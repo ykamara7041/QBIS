@@ -109,9 +109,10 @@ export default async function DashboardOverviewPage({ searchParams }: { searchPa
     totalTarget = branches.reduce((sum, b) => sum + (b.targetBudget || 0), 0)
   }
 
-  const targetAchievementPercentage = totalTarget > 0 
+  const rawPercentage = totalTarget > 0 
     ? Math.round((totalRevenue / totalTarget) * 100)
     : (totalRevenue > 0 ? 100 : 0)
+  const targetAchievementPercentage = Math.min(100, rawPercentage)
 
   let chartData: RevenueDataPoint[] = []
 

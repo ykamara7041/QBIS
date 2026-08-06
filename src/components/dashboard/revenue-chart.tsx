@@ -28,7 +28,8 @@ export function RevenueChart({ data, currency = "GNF" }: { data: RevenueDataPoin
     if (active && payload && payload.length) {
       const revenueVal = payload.find((p: any) => p.dataKey === "revenue")?.value || 0
       const targetVal = payload.find((p: any) => p.dataKey === "target")?.value || 0
-      const rate = targetVal > 0 ? Math.round((revenueVal / targetVal) * 100) : 0
+      const rawRate = targetVal > 0 ? Math.round((revenueVal / targetVal) * 100) : 0
+      const rate = Math.min(100, rawRate)
 
       return (
         <div className="rounded-xl border bg-card p-3 shadow-lg text-xs space-y-1.5 min-w-[160px]">
