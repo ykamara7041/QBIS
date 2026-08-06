@@ -15,6 +15,8 @@ interface DashboardContentProps {
   totalExpenses: number
   netProfit: number
   currency: string
+  targetAchievementPercentage: number
+  totalTarget: number
 }
 
 function MetricCard({ label, value, note, icon: Icon, tone }: { label: string; value: string; note: string; icon: React.ElementType; tone: string }) {
@@ -32,10 +34,10 @@ function MetricCard({ label, value, note, icon: Icon, tone }: { label: string; v
   )
 }
 
-export function DashboardContent({ userName, chartData, totalRevenue, totalExpenses, netProfit, currency }: DashboardContentProps) {
+export function DashboardContent({ userName, chartData, totalRevenue, totalExpenses, netProfit, currency, targetAchievementPercentage, totalTarget }: DashboardContentProps) {
   const { t } = useLanguage()
   const firstName = userName.split(" ")[0]
-  const hasRevenue = totalRevenue > 0
+  const deg = Math.min(360, Math.max(0, Math.round((targetAchievementPercentage / 100) * 360)))
 
   return (
     <div className="space-y-5">
@@ -78,8 +80,8 @@ export function DashboardContent({ userName, chartData, totalRevenue, totalExpen
         />
         <MetricCard
           label={t('dashboard.target_achievement')}
-          value={hasRevenue ? "72%" : "0%"}
-          note={t('dashboard.goals_note')}
+          value={`${targetAchievementPercentage}%`}
+          note={totalTarget > 0 ? `Target: ${formatCurrency(totalTarget, currency)}` : t('dashboard.goals_note')}
           icon={Target}
           tone="bg-violet-50 text-violet-600 dark:bg-violet-500/10 dark:text-violet-400"
         />
@@ -103,7 +105,19 @@ export function DashboardContent({ userName, chartData, totalRevenue, totalExpen
             <p className="mt-3 text-sm font-semibold">{t('dashboard.recent_transactions')}</p>
           </div>
         </article>
-        <article className="qbix-card p-5 sm:p-6"><h2 className="font-semibold">{t('dashboard.goal_progress')}</h2><div className="mx-auto mt-6 flex h-36 w-36 items-center justify-center rounded-full bg-[conic-gradient(#10b981_0deg_259deg,#e2e8f0_259deg)]"><div className="flex h-28 w-28 flex-col items-center justify-center rounded-full bg-card"><strong className="text-3xl">{hasRevenue ? "72%" : "0%"}</strong><span className="text-xs text-muted-foreground">{t('dashboard.of_target')}</span></div></div><Link href="/dashboard/targets" className="mt-6 flex justify-center text-sm font-semibold text-primary">{t('dashboard.manage_targets')}</Link></article>
+        <article className="qbix-card p-5 sm:p-6">
+          <h2 className="font-semibold">{t('dashboard.goal_progress')}</h2>
+          <div
+            className="mx-auto mt-6 flex h-36 w-36 items-center justify-center rounded-full transition-all duration-500"
+            style={{ background: `conic-gradient(#10b981 0deg ${deg}deg, #e2e8f0 ${deg}deg)` }}
+          >
+            <div className="flex h-28 w-28 flex-col items-center justify-center rounded-full bg-card shadow-inner">
+              <strong className="text-3xl font-bold tracking-tight">{targetAchievementPercentage}%</strong>
+              <span className="text-xs text-muted-foreground">{t('dashboard.of_target')}</span>
+            </div>
+          </div>
+          <Link href="/dashboard/targets" className="mt-6 flex justify-center text-sm font-semibold text-primary hover:underline">{t('dashboard.manage_targets')}</Link>
+        </article>
       </section>
     </div>
   )

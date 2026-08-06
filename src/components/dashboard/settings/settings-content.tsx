@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { useLanguage } from "@/components/providers/language-provider"
+import { useSearchParams } from "next/navigation"
 
 interface SettingsContentProps {
   organizationName: string
@@ -32,6 +33,8 @@ export function SettingsContent({
   totalGNF,
 }: SettingsContentProps) {
   const { t } = useLanguage()
+  const searchParams = useSearchParams()
+  const initialTab = searchParams.get("tab") === "preferences" ? "preferences" : "general"
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto w-full">
@@ -40,7 +43,7 @@ export function SettingsContent({
         <p className="text-muted-foreground">{t("settings.subtitle")}</p>
       </div>
 
-      <Tabs defaultValue="general" className="w-full">
+      <Tabs defaultValue={initialTab} className="w-full">
         <TabsList className="grid w-full grid-cols-3 md:w-[400px]">
           <TabsTrigger value="general">{t("settings.tab_general")}</TabsTrigger>
           <TabsTrigger value="team">{t("settings.tab_team")}</TabsTrigger>

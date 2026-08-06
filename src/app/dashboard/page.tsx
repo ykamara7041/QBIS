@@ -97,24 +97,89 @@ export default async function DashboardOverviewPage({ searchParams }: { searchPa
   const totalExpenses = expenseTxs.reduce((sum, tx) => sum + tx.amount, 0)
   const netProfit = totalRevenue - totalExpenses
 
-  const aggregatedData: Record<string, number> = {}
-  
-  revenueTxs.forEach(tx => {
-    const key = range === 'today' || range === 'week' 
-      ? new Date(tx.date).toLocaleDateString(undefined, { weekday: 'short' })
-      : new Date(tx.date).toLocaleDateString(undefined, { month: 'short' })
-      
-    aggregatedData[key] = (aggregatedData[key] || 0) + tx.amount
+  const rawGoals = await db.revenueGoal.findMany({
+    where: { organizationId: member.organizationId }
   })
 
-  const chartData: RevenueDataPoint[] = Object.entries(aggregatedData).map(([key, value]) => ({
-    month: key,
-    revenue: value,
-    target: Math.round(value * 1.1)
-  }))
+  let totalTarget = rawGoals.reduce((sum, g) => sum + g.targetAmount, 0)
+  if (totalTarget === 0) {
+    const branches = await db.branch.findMany({
+      where: { organizationId: member.organizationId }
+    })
+    totalTarget = branches.reduce((sum, b) => sum + (b.targetBudget || 0), 0)
+  }
 
-  if (chartData.length === 0) {
-    chartData.push({ month: "No Data", revenue: 0, target: 0 })
+  const targetAchievementPercentage = totalTarget > 0 
+    ? Math.round((totalRevenue / totalTarget) * 100)
+    : (totalRevenue > 0 ? 100 : 0)
+
+  let chartData: RevenueDataPoint[] = []
+
+  if (range === "year" || range === "all") {
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+    const monthlyTarget = totalTarget > 0 ? Math.round(totalTarget / 12) : 0
+
+    const monthMap: Record<string, number> = {}
+    revenueTxs.forEach(tx => {
+      const monthName = new Date(tx.date).toLocaleDateString("en-US", { month: "short" })
+      monthMap[monthName] = (monthMap[monthName] || 0) + tx.amount
+    })
+
+    chartData = months.map(m => ({
+      month: m,
+      revenue: monthMap[m] || 0,
+      target: monthlyTarget || Math.round((monthMap[m] || 0) * 1.15)
+    }))
+  } else if (range === "week") {
+    const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+    const dailyTarget = totalTarget > 0 ? Math.round(totalTarget / 365) : 0
+
+    const dayMap: Record<string, number> = {}
+    revenueTxs.forEach(tx => {
+      const dayName = new Date(tx.date).toLocaleDateString("en-US", { weekday: "short" })
+      dayMap[dayName] = (dayMap[dayName] || 0) + tx.amount
+    })
+
+    chartData = days.map(d => ({
+      month: d,
+      revenue: dayMap[d] || 0,
+      target: dailyTarget || Math.round((dayMap[d] || 0) * 1.15)
+    }))
+  } else if (range === "today") {
+    const timeBlocks = ["00:00", "04:00", "08:00", "12:00", "16:00", "20:00"]
+    const blockTarget = totalTarget > 0 ? Math.round(totalTarget / 365 / 6) : 0
+
+    const timeMap: Record<string, number> = {}
+    revenueTxs.forEach(tx => {
+      const hour = new Date(tx.date).getHours()
+      const blockIdx = Math.min(5, Math.floor(hour / 4))
+      const blockKey = timeBlocks[blockIdx]
+      timeMap[blockKey] = (timeMap[blockKey] || 0) + tx.amount
+    })
+
+    chartData = timeBlocks.map(t => ({
+      month: t,
+      revenue: timeMap[t] || 0,
+      target: blockTarget || Math.round((timeMap[t] || 0) * 1.15)
+    }))
+  } else {
+    // Month or fallback
+    const weeks = ["Week 1", "Week 2", "Week 3", "Week 4"]
+    const weeklyTarget = totalTarget > 0 ? Math.round(totalTarget / 52) : 0
+
+    const weekMap: Record<string, number> = {}
+    revenueTxs.forEach(tx => {
+      const dateNum = new Date(tx.date).getDate()
+      const weekIdx = Math.min(3, Math.floor((dateNum - 1) / 7))
+      const weekKey = weeks[weekIdx]
+      weekMap[weekKey] = (weekMap[weekKey] || 0) + tx.amount
+    })
+
+    chartData = weeks.map(w => ({
+      month: w,
+      revenue: weekMap[w] || 0,
+      target: weeklyTarget || Math.round((weekMap[w] || 0) * 1.15)
+    }))
   }
 
   return (
@@ -125,6 +190,8 @@ export default async function DashboardOverviewPage({ searchParams }: { searchPa
       totalExpenses={totalExpenses}
       netProfit={netProfit}
       currency={member.organization.defaultCurrency}
+      targetAchievementPercentage={targetAchievementPercentage}
+      totalTarget={totalTarget}
     />
   )
 }

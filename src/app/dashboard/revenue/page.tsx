@@ -61,22 +61,32 @@ export default async function RevenuePage() {
     orderBy: { date: 'asc' }
   })
 
+  const rawGoals = await db.revenueGoal.findMany({
+    where: { organizationId: member.organizationId }
+  })
+
+  let totalTarget = rawGoals.reduce((sum, g) => sum + g.targetAmount, 0)
+  if (totalTarget === 0) {
+    const branches = await db.branch.findMany({
+      where: { organizationId: member.organizationId }
+    })
+    totalTarget = branches.reduce((sum, b) => sum + (b.targetBudget || 0), 0)
+  }
+
+  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+  const monthlyTarget = totalTarget > 0 ? Math.round(totalTarget / 12) : 0
+
   const aggregatedData: Record<string, number> = {}
-  
   approvedTxs.forEach(tx => {
     const key = new Date(tx.date).toLocaleDateString("en-US", { month: 'short' })
     aggregatedData[key] = (aggregatedData[key] || 0) + tx.amount
   })
 
-  const chartData: RevenueDataPoint[] = Object.entries(aggregatedData).map(([key, value]) => ({
-    month: key,
-    revenue: value,
-    target: Math.round(value * 1.1)
+  const chartData: RevenueDataPoint[] = months.map(m => ({
+    month: m,
+    revenue: aggregatedData[m] || 0,
+    target: monthlyTarget || Math.round((aggregatedData[m] || 0) * 1.15)
   }))
-
-  if (chartData.length === 0) {
-    chartData.push({ month: 'No Data', revenue: 0, target: 0 })
-  }
 
   return (
     <RevenueContent
